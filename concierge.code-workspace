@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"name": "common",
+			"path": "cmd/common"
+		},
+		{
+			"name": "statefulset-create",
+			"path": "cmd/single/statefulset/create"
+		},
+		{
+			"name": "concierge",
+			"path": "."
+		}
+	],
+	"settings": {}
+}

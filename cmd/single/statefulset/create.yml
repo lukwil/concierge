@@ -1,0 +1,15 @@
+version: 1.0
+provider:
+  name: openfaas
+  gateway: http://localhost:8080/faas/
+functions:
+  create-stateful-set:
+    lang: golang-middleware
+    namespace: openfaas
+    handler: ./create
+    image: lukwil/create-stateful-set:latest
+    build_args:
+      GO111MODULE: on
+    environment:
+      nats_url: nats://nats.openfaas:4222
+      topic_create_service: nats-create-service
