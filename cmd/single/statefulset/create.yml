@@ -11,5 +11,7 @@ functions:
     build_args:
       GO111MODULE: on
     environment:
+      namespace: container
+      graphql_url: http://hasura.hasura.svc.cluster.local/hasura/v1/graphql
       nats_url: nats://nats.openfaas:4222
       topic_create_service: nats-create-service
