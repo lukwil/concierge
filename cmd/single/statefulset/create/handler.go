@@ -27,22 +27,32 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid payload", http.StatusBadRequest)
 		return
 	}
-	payload.createStatefulSet()
+	namespace := "container"
+	if val, ok := os.LookupEnv("namespace"); ok {
+		namespace = val
+	}
+	name, err := payload.createStatefulSet(namespace)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		errMsg := fmt.Sprintf("Cannot create StatefulSet: %s", err)
+		log.Println(errMsg)
+		w.Write([]byte(errMsg))
+		return
+	}
 
 	subject := "nats-create-service"
 	if val, ok := os.LookupEnv("topic_create_service"); ok {
 		subject = val
 	}
 
-	if err := sendViaNats(subject, string(input)); err != nil {
+	if err := sendViaNats(subject, name); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		errMsg := fmt.Sprintf("Can not connect/publish to message queue: %s", err)
+		errMsg := fmt.Sprintf("Cannot connect/publish to message queue: %s", err)
+		log.Println(errMsg)
 		w.Write([]byte(errMsg))
 		return
 	}
-
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(fmt.Sprintf("Hello world, input was lukwil: %s", string(input))))
 }
 
 func sendViaNats(subject, msg string) error {

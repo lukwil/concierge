@@ -3,10 +3,14 @@ package create
 import (
 	"context"
 	"fmt"
+	"log"
+	"os"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/shurcooL/graphql"
+	"gitlab.com/masterarbeit-dl-cluster/concierge/cmd/common/clientset"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -22,14 +26,16 @@ type payload struct {
 		Data struct {
 			Old interface{} `json:"old"`
 			New struct {
-				VolumeID int         `json:"volume_id"`
-				Name     string      `json:"name"`
-				Gpu      int         `json:"gpu"`
-				ID       int         `json:"id"`
-				NameK8S  interface{} `json:"name_k8s"`
-				RAM      int         `json:"ram"`
-				StatusID interface{} `json:"status_id"`
-				CPU      int         `json:"cpu"`
+				ID             int    `json:"id"`
+				Name           string `json:"name"`
+				NameK8S        string `json:"name_k8s"`
+				ContainerImage string `json:"container_image"`
+				CPU            int    `json:"cpu"`
+				RAM            int    `json:"ram"`
+				GPU            int    `json:"gpu"`
+				URLPrefix      string `json:"url_prefix"`
+				StatusID       int    `json:"status_id"`
+				VolumeID       int    `json:"volume_id"`
 			} `json:"new"`
 		} `json:"data"`
 	} `json:"event"`
@@ -48,25 +54,35 @@ type payload struct {
 	} `json:"table"`
 }
 
-func (p *payload) createStatefulSet(namespace string) string {
-	namespace = strings.TrimSpace(namespace)
-	image := strings.TrimSpace(p.Input.Arg1.ContainerImage)
-	cpu := p.Input.Arg1.CPU
-	ram := p.Input.Arg1.RAM
-	//gpu := p.Input.Arg1.GPU
-	volumeSize := p.Input.Arg1.VolumeSize
-	volumeMountPath := p.Input.Arg1.VolumeMountPath
-	fmt.Println("VOLUMEMOUNTPATH")
-	fmt.Println(volumeMountPath)
+var volumePayload struct {
+	VolumeByPk struct {
+		MountPath graphql.String
+		Size      graphql.Int
+	} `graphql:"volume_by_pk(id: $id)"`
+}
 
-	clientset := clientset.setupInternal()
+type volume struct {
+	Size      int
+	MountPath string
+}
+
+func (p *payload) createStatefulSet(namespace string) (string, error) {
+	namespace = strings.TrimSpace(namespace)
+	image := strings.TrimSpace(p.Event.Data.New.ContainerImage)
+	urlPrefix := p.Event.Data.New.URLPrefix
+	cpu := p.Event.Data.New.CPU
+	ram := p.Event.Data.New.RAM
+	volumeID := p.Event.Data.New.VolumeID
+
+	clientset, err := clientset.SetupInternal()
+	if err != nil {
+		return "", err
+	}
 
 	replicas := int32(1)
 	name := fmt.Sprintf("%v-%s", namespace, uuid.New())
 	cpuStr := fmt.Sprintf("%vm", cpu)
 	ramStr := fmt.Sprintf("%vMi", ram)
-	//storageClassName := "local-path"
-	storageStr := fmt.Sprintf("%vMi", volumeSize)
 	fsGroup := int64(100)
 
 	statefulSetClient := clientset.AppsV1().StatefulSets(namespace)
@@ -97,11 +113,10 @@ func (p *payload) createStatefulSet(namespace string) string {
 							ImagePullPolicy: corev1.PullIfNotPresent,
 							Env: []corev1.EnvVar{
 								{
-									Name:  "NB_PREFIX",
-									Value: "/", //fmt.Sprintf("/%s", name),
+									Name:  "URL_PREFIX",
+									Value: urlPrefix,
 								},
 							},
-							Command: []string{"sh", "-c", "jupyter notebook --notebook-dir=/home/jovyan --ip=0.0.0.0 --no-browser --allow-root --port=8888 --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.allow_origin='*' --NotebookApp.base_url=${NB_PREFIX}"},
 							Resources: corev1.ResourceRequirements{
 								Requests: corev1.ResourceList{
 									corev1.ResourceCPU:    resource.MustParse(cpuStr),
@@ -126,12 +141,19 @@ func (p *payload) createStatefulSet(namespace string) string {
 	}
 
 	// create a volume if required by user
-	if volumeSize != 0 {
+	if volumeID != 0 {
+		vol, err := getVolumeDetails(volumeID)
+		if err != nil {
+			return "", err
+		}
+
+		storageStr := fmt.Sprintf("%vMi", vol.Size)
+
 		container := &statefulSet.Spec.Template.Spec.Containers[0]
 		container.VolumeMounts = []corev1.VolumeMount{
 			{
 				Name:      name,
-				MountPath: volumeMountPath,
+				MountPath: vol.MountPath,
 			},
 		}
 		statefulSet.Spec.VolumeClaimTemplates = []corev1.PersistentVolumeClaim{
@@ -144,7 +166,6 @@ func (p *payload) createStatefulSet(namespace string) string {
 					AccessModes: []corev1.PersistentVolumeAccessMode{
 						corev1.ReadWriteOnce,
 					},
-					//StorageClassName: &storageClassName,
 					Resources: corev1.ResourceRequirements{
 						Requests: corev1.ResourceList{
 							corev1.ResourceName(corev1.ResourceStorage): resource.MustParse(storageStr),
@@ -154,15 +175,36 @@ func (p *payload) createStatefulSet(namespace string) string {
 			},
 		}
 	}
-	fmt.Println(statefulSet)
 
-	fmt.Println("Creating stateful set...")
+	log.Println("Creating stateful set...")
 	result, err := statefulSetClient.Create(context.TODO(), statefulSet, metav1.CreateOptions{})
 	if err != nil {
 		panic(err)
 	}
 	statefulSetName := result.GetObjectMeta().GetName()
-	fmt.Printf("Created stateful set %q.\n", statefulSetName)
+	log.Printf("Created stateful set %q.\n", statefulSetName)
 
-	return statefulSetName
+	return statefulSetName, nil
+}
+
+func getVolumeDetails(volumeID int) (*volume, error) {
+	graphqlURL := "http://localhost:8080/hasura/v1/graphql"
+	if val, ok := os.LookupEnv("graphql_url"); ok {
+		graphqlURL = val
+	}
+	client := graphql.NewClient(graphqlURL, nil)
+
+	variables := map[string]interface{}{
+		"id": graphql.ID(volumeID),
+	}
+
+	if err := client.Query(context.TODO(), &volumePayload, variables); err != nil {
+		return &volume{}, err
+	}
+
+	vol := &volume{
+		Size:      int(volumePayload.VolumeByPk.Size),
+		MountPath: string(volumePayload.VolumeByPk.MountPath),
+	}
+	return vol, nil
 }
