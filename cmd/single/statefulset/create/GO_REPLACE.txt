@@ -1,0 +1,1 @@
+replace gitlab.com/masterarbeit-dl-cluster/concierge/cmd/single/statefulset/create/common => ./function/common

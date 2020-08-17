@@ -1,4 +1,4 @@
-package create
+package function
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/shurcooL/graphql"
-	"gitlab.com/masterarbeit-dl-cluster/concierge/cmd/common/clientset"
+	"gitlab.com/masterarbeit-dl-cluster/concierge/cmd/single/statefulset/create/clientset"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
