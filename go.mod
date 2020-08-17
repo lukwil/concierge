@@ -1,3 +1,3 @@
-module gitlab.com/masterarbeit-dl-cluster/concierge
+module github.com/lukwil/concierge
 
 go 1.14

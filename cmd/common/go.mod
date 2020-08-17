@@ -1,4 +1,4 @@
-module gitlab.com/masterarbeit-dl-cluster/concierge/cmd/common
+module github.com/lukwil/concierge/cmd/common
 
 go 1.14
 
