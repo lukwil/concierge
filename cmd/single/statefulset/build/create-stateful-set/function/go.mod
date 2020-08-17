@@ -4,7 +4,7 @@ go 1.14
 
 require (
 	github.com/google/uuid v1.1.1
-	github.com/lukwil/concierge/cmd/common v0.0.0-20200817195130-13b4f8fda3ea // indirect
+	github.com/lukwil/concierge/cmd/common v0.0.0-20200817201416-4d1e57b666f3 // indirect
 	github.com/nats-io/nats-server/v2 v2.1.7 // indirect
 	github.com/nats-io/nats.go v1.10.0
 	github.com/shurcooL/graphql v0.0.0-20181231061246-d48a9a75455f
