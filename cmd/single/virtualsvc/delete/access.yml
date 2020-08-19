@@ -1,0 +1,31 @@
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: fn-delete-virtualsvc-role
+  namespace: container
+rules:
+- apiGroups: ["networking.istio.io"]
+  resources: ["virtualservices"]
+  verbs: ["delete"]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: fn-delete-virtualsvc-role-binding
+  namespace: container
+subjects:
+- kind: ServiceAccount
+  name: fn-delete-virtualsvc
+  namespace: openfaas
+roleRef:
+  kind: Role
+  name: fn-delete-virtualsvc-role
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: fn-delete-virtualsvc
+  namespace: openfaas
+  labels:
+    app: openfaas

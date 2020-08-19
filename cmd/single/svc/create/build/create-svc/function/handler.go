@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/nats-io/nats.go"
+	"github.com/lukwil/concierge/cmd/common/nats"
 )
 
 type payload struct {
@@ -37,7 +37,7 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 	if val, ok := os.LookupEnv("namespace"); ok {
 		namespace = val
 	}
-	if err := createService(payload.Name, namespace); err != nil {
+	if err := createSvc(payload.Name, namespace); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		errMsg := fmt.Sprintf("Cannot create Service: %s", err)
 		log.Println(errMsg)
@@ -45,46 +45,24 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	subject := "nats-create-virtual-service"
-	if val, ok := os.LookupEnv("topic_create_virtual_service"); ok {
+	subject := "nats-create-virtualsvc"
+	if val, ok := os.LookupEnv("topic_create_virtualsvc"); ok {
 		subject = val
 	}
 
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
 		log.Println(err)
-		http.Error(w, "could not marshal json", http.StatusInternalServerError)
+		http.Error(w, "Cannot marshal json", http.StatusInternalServerError)
 		return
 	}
 
-	if err := sendViaNats(subject, payloadBytes); err != nil {
+	if err := nats.Send(subject, payloadBytes); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		errMsg := fmt.Sprintf("Can not connect/publish to message queue: %s", err)
+		errMsg := fmt.Sprintf("Cannot connect/publish to message queue: %s", err)
 		w.Write([]byte(errMsg))
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-}
-
-func sendViaNats(subject string, msg []byte) error {
-	natsURL := nats.DefaultURL
-	if val, ok := os.LookupEnv("nats_url"); ok {
-		natsURL = val
-	}
-
-	nc, err := nats.Connect(natsURL)
-	if err != nil {
-		log.Println(err)
-		return err
-	}
-	defer nc.Close()
-
-	if err := nc.Publish(subject, msg); err != nil {
-		log.Println(err)
-		return err
-	}
-
-	log.Printf("Published %d bytes to: %q\n", len(msg), subject)
-	return nil
 }

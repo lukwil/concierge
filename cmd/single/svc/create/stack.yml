@@ -11,10 +11,10 @@ functions:
     build_args:
       GO111MODULE: on
     annotations:
-      topic: nats-create-service
+      topic: nats-create-svc
       com.openfaas.serviceaccount: fn-create-svc
     environment:
       namespace: container
       graphql_url: http://hasura.hasura.svc.cluster.local/v1/graphql
       nats_url: nats://nats.openfaas:4222
-      topic_create_virtual_service: nats-create-virtual-service
+      topic_create_virtualsvc: nats-create-virtualsvc

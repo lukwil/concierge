@@ -1,0 +1,20 @@
+version: 1.0
+provider:
+  name: openfaas
+  gateway: http://localhost:8080/faas/
+functions:
+  delete-statefulset:
+    lang: golang-middleware
+    namespace: openfaas
+    handler: ./function
+    image: lukwil/delete-statefulset:latest
+    build_args:
+      GO111MODULE: on
+    annotations:
+      topic: nats-delete-statefulset
+      com.openfaas.serviceaccount: fn-delete-statefulset
+    environment:
+      namespace: container
+      graphql_url: http://hasura.hasura.svc.cluster.local/v1/graphql
+      nats_url: nats://nats.openfaas:4222
+      topic_delete_pvc: nats-delete-pvc

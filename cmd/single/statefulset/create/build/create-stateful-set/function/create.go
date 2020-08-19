@@ -70,6 +70,7 @@ type volume struct {
 func (p *payload) createStatefulSet(namespace string) (string, error) {
 	namespace = strings.TrimSpace(namespace)
 	image := strings.TrimSpace(p.Event.Data.New.ContainerImage)
+
 	urlPrefix := p.Event.Data.New.URLPrefix
 	cpu := p.Event.Data.New.CPU
 	ram := p.Event.Data.New.RAM
@@ -177,13 +178,13 @@ func (p *payload) createStatefulSet(namespace string) (string, error) {
 		}
 	}
 
-	log.Println("Creating stateful set...")
+	log.Println("Creating StatefulSet...")
 	result, err := statefulSetClient.Create(context.TODO(), statefulSet, metav1.CreateOptions{})
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 	statefulSetName := result.GetObjectMeta().GetName()
-	log.Printf("Created stateful set %q.\n", statefulSetName)
+	log.Printf("Created StatefulSet %q.\n", statefulSetName)
 
 	return statefulSetName, nil
 }

@@ -11,7 +11,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func createService(name, namespace string) error {
+func createSvc(name, namespace string) error {
 	name = strings.TrimSpace(name)
 	namespace = strings.TrimSpace(namespace)
 
@@ -42,13 +42,13 @@ func createService(name, namespace string) error {
 		},
 	}
 
-	log.Println("Creating service...")
+	log.Println("Creating Service...")
 	result, err := serviceClient.Create(context.TODO(), service, metav1.CreateOptions{})
 	if err != nil {
 		return err
 	}
 	serviceName := result.GetObjectMeta().GetName()
-	log.Printf("Created service %q.\n", serviceName)
+	log.Printf("Created Service %q.\n", serviceName)
 
 	return nil
 }

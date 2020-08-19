@@ -3,16 +3,16 @@ provider:
   name: openfaas
   gateway: http://localhost:8080/faas/
 functions:
-  create-virtual-svc:
+  create-virtualsvc:
     lang: golang-middleware
     namespace: openfaas
     handler: ./function
-    image: lukwil/create-virtual-svc:latest
+    image: lukwil/create-virtualsvc:latest
     build_args:
       GO111MODULE: on
     annotations:
-      topic: nats-create-virtual-service
-      com.openfaas.serviceaccount: fn-create-virtual-svc
+      topic: nats-create-virtualsvc
+      com.openfaas.serviceaccount: fn-create-virtualsvc
     environment:
       namespace: container
       graphql_url: http://hasura.hasura.svc.cluster.local/v1/graphql

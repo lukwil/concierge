@@ -1,0 +1,19 @@
+version: 1.0
+provider:
+  name: openfaas
+  gateway: http://localhost:8080/faas/
+functions:
+  delete-pvc:
+    lang: golang-middleware
+    namespace: openfaas
+    handler: ./function
+    image: lukwil/delete-pvc:latest
+    build_args:
+      GO111MODULE: on
+    annotations:
+      topic: nats-delete-pvc
+      com.openfaas.serviceaccount: fn-delete-pvc
+    environment:
+      namespace: container
+      graphql_url: http://hasura.hasura.svc.cluster.local/v1/graphql
+      nats_url: nats://nats.openfaas:4222

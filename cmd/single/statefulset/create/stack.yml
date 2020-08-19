@@ -3,11 +3,11 @@ provider:
   name: openfaas
   gateway: http://localhost:8080/faas/
 functions:
-  create-stateful-set:
+  create-statefulset:
     lang: golang-middleware
     namespace: openfaas
     handler: ./function
-    image: lukwil/create-stateful-set:latest
+    image: lukwil/create-statefulset:latest
     build_args:
       GO111MODULE: on
     annotations:
@@ -16,4 +16,4 @@ functions:
       namespace: container
       graphql_url: http://hasura.hasura.svc.cluster.local/v1/graphql
       nats_url: nats://nats.openfaas:4222
-      topic_create_service: nats-create-service
+      topic_create_svc: nats-create-svc

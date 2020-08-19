@@ -9,13 +9,30 @@
 			"path": "cmd/single/statefulset/create/function"
 		},
 		{
+			"name": "statefulset-delete",
+			"path": "cmd/single/statefulset/delete/function"
+		},
+		{
+			"name": "pvc-delete",
+			"path": "cmd/single/pvc/delete/function"
+		},
+		{
 			"name": "svc-create",
 			"path": "cmd/single/svc/create/function"
+		},
+		{
+			"name": "svc-delete",
+			"path": "cmd/single/svc/delete/function"
 		},
 		{
 			"name": "virtual-svc-create",
 			"path": "cmd/single/virtualsvc/create/function"
 		},
+		{
+			"name": "virtual-svc-delete",
+			"path": "cmd/single/virtualsvc/delete/function"
+		},
+
 		{
 			"name": "concierge",
 			"path": "."
