@@ -6,7 +6,15 @@
 		},
 		{
 			"name": "statefulset-create",
-			"path": "cmd/single/statefulset/create"
+			"path": "cmd/single/statefulset/create/function"
+		},
+		{
+			"name": "svc-create",
+			"path": "cmd/single/svc/create/function"
+		},
+		{
+			"name": "virtual-svc-create",
+			"path": "cmd/single/virtualsvc/create/function"
 		},
 		{
 			"name": "concierge",
