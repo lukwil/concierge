@@ -3,6 +3,6 @@ module github.com/lukwil/concierge/cmd/single/svc/delete/function
 go 1.14
 
 require (
-	github.com/lukwil/concierge/cmd/common v0.0.0-20200819141940-0c34a7973255
+	github.com/lukwil/concierge/cmd/common v0.0.0-20200820125500-cb45b9d32ff6
 	k8s.io/apimachinery v0.18.8
 )

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/lukwil/concierge/cmd/common/hasura"
 	"github.com/lukwil/concierge/cmd/common/nats"
 )
 
@@ -26,7 +27,7 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Println(string(input))
 
-	var payload payload
+	var payload hasura.SingleDeploymentPayload
 	if err := json.Unmarshal(input, &payload); err != nil {
 		log.Println(err)
 		http.Error(w, "invalid payload", http.StatusBadRequest)
@@ -36,7 +37,7 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 	if val, ok := os.LookupEnv("namespace"); ok {
 		namespace = val
 	}
-	name, err := payload.createStatefulSet(namespace)
+	name, err := createStatefulSet(&payload, namespace)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		errMsg := fmt.Sprintf("Cannot create StatefulSet: %s", err)

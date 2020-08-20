@@ -4,11 +4,10 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
 	"strings"
-	"time"
 
 	"github.com/lukwil/concierge/cmd/common/clientset"
+	"github.com/lukwil/concierge/cmd/common/hasura"
 
 	"github.com/google/uuid"
 	"github.com/shurcooL/graphql"
@@ -17,43 +16,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
-
-type payload struct {
-	Event struct {
-		SessionVariables struct {
-			XHasuraRole string `json:"x-hasura-role"`
-		} `json:"session_variables"`
-		Op   string `json:"op"`
-		Data struct {
-			Old interface{} `json:"old"`
-			New struct {
-				ID             int    `json:"id"`
-				Name           string `json:"name"`
-				NameK8S        string `json:"name_k8s"`
-				ContainerImage string `json:"container_image"`
-				CPU            int    `json:"cpu"`
-				RAM            int    `json:"ram"`
-				GPU            int    `json:"gpu"`
-				URLPrefix      string `json:"url_prefix"`
-				StatusID       int    `json:"status_id"`
-				VolumeID       int    `json:"volume_id"`
-			} `json:"new"`
-		} `json:"data"`
-	} `json:"event"`
-	CreatedAt    time.Time `json:"created_at"`
-	ID           string    `json:"id"`
-	DeliveryInfo struct {
-		MaxRetries   int `json:"max_retries"`
-		CurrentRetry int `json:"current_retry"`
-	} `json:"delivery_info"`
-	Trigger struct {
-		Name string `json:"name"`
-	} `json:"trigger"`
-	Table struct {
-		Schema string `json:"schema"`
-		Name   string `json:"name"`
-	} `json:"table"`
-}
 
 var volumePayload struct {
 	VolumeByPk struct {
@@ -67,7 +29,23 @@ type volume struct {
 	MountPath string
 }
 
-func (p *payload) createStatefulSet(namespace string) (string, error) {
+var singleDeploymentPayload struct {
+	SingleDeploymentByPk struct {
+		ID graphql.Int `graphql:"id"`
+	} `graphql:"update_single_deployment_by_pk(pk_columns: $pkColumns, _set: $set)"`
+}
+
+// Non-idiomatic Go naming, but needed by graphql library
+type single_deployment_pk_columns_input struct {
+	ID int `json:"id"`
+}
+
+// Non-idiomatic Go naming, but needed by graphql library
+type single_deployment_set_input struct {
+	NameK8s string `json:"name_k8s"`
+}
+
+func createStatefulSet(p *hasura.SingleDeploymentPayload, namespace string) (string, error) {
 	namespace = strings.TrimSpace(namespace)
 	image := strings.TrimSpace(p.Event.Data.New.ContainerImage)
 
@@ -146,6 +124,8 @@ func (p *payload) createStatefulSet(namespace string) (string, error) {
 	if volumeID != 0 {
 		vol, err := getVolumeDetails(volumeID)
 		if err != nil {
+			errMsg := fmt.Sprintf("Cannot set volume in database: %s", err)
+			log.Println(errMsg)
 			return "", err
 		}
 
@@ -186,15 +166,17 @@ func (p *payload) createStatefulSet(namespace string) (string, error) {
 	statefulSetName := result.GetObjectMeta().GetName()
 	log.Printf("Created StatefulSet %q.\n", statefulSetName)
 
+	if err := setK8sName(p.Event.Data.New.ID, statefulSetName); err != nil {
+		errMsg := fmt.Sprintf("Cannot set K8sName in database: %s", err)
+		log.Println(errMsg)
+		return "", err
+	}
+
 	return statefulSetName, nil
 }
 
 func getVolumeDetails(volumeID int) (*volume, error) {
-	graphqlURL := "http://localhost:8080/hasura/v1/graphql"
-	if val, ok := os.LookupEnv("graphql_url"); ok {
-		graphqlURL = val
-	}
-	client := graphql.NewClient(graphqlURL, nil)
+	client := hasura.Client()
 
 	variables := map[string]interface{}{
 		"id": graphql.Int(volumeID),
@@ -209,4 +191,25 @@ func getVolumeDetails(volumeID int) (*volume, error) {
 		MountPath: string(volumePayload.VolumeByPk.MountPath),
 	}
 	return vol, nil
+}
+
+func setK8sName(id int, name string) error {
+	client := hasura.Client()
+
+	pkColumns := single_deployment_pk_columns_input{
+		ID: id,
+	}
+	set := single_deployment_set_input{
+		NameK8s: name,
+	}
+	variables := map[string]interface{}{
+		"pkColumns": pkColumns,
+		"set":       set,
+	}
+
+	if err := client.Mutate(context.TODO(), &singleDeploymentPayload, variables); err != nil {
+		return err
+	}
+
+	return nil
 }

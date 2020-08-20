@@ -3,23 +3,18 @@ package function
 import (
 	"context"
 	"log"
-	"path/filepath"
 	"strings"
-
-	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/client-go/util/homedir"
 
 	versionedclient "istio.io/client-go/pkg/clientset/versioned"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/rest"
 )
 
 func deleteVirtualSvc(name, namespace string) error {
 	name = strings.TrimSpace(name)
 	namespace = strings.TrimSpace(namespace)
 
-	home := homedir.HomeDir()
-	kubeconfig := filepath.Join(home, ".kube", "config")
-	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
+	config, err := rest.InClusterConfig()
 	if err != nil {
 		return err
 	}
