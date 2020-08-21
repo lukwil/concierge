@@ -16,7 +16,6 @@ func SetReplicaStatefulSet(replicas int32, name, namespace string) error {
 		return err
 	}
 
-	//createPVC(clientset, name, namespace)
 	statefulSetClient := clientset.AppsV1().StatefulSets(namespace)
 	result, err := statefulSetClient.Get(context.TODO(), name, metav1.GetOptions{})
 	if err != nil {
