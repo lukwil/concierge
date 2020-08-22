@@ -90,6 +90,8 @@ github.com/lukwil/concierge/cmd/common v0.0.0-20200819141940-0c34a7973255 h1:IJ0
 github.com/lukwil/concierge/cmd/common v0.0.0-20200819141940-0c34a7973255/go.mod h1:X7beSNUu4NA2KGAxGMpDAT7ygIa3GPnZ9WXJ8CeEDnQ=
 github.com/lukwil/concierge/cmd/common v0.0.0-20200820125500-cb45b9d32ff6 h1:QSfzQCtEZCzWKo4A1PTFZQUGisecr9IpZWZDv1t+yiI=
 github.com/lukwil/concierge/cmd/common v0.0.0-20200820125500-cb45b9d32ff6/go.mod h1:wK1Xkn2QVSDJ5aTitZ0UGGzdKDooHVnv8IIcLxObWp8=
+github.com/lukwil/concierge/cmd/common v0.0.0-20200820172032-a38167c8b6da h1:iQPLIZ1dWkIgXKIDfKV0ljzCdFUaQUcdNDsYEDIECw8=
+github.com/lukwil/concierge/cmd/common v0.0.0-20200820172032-a38167c8b6da/go.mod h1:wK1Xkn2QVSDJ5aTitZ0UGGzdKDooHVnv8IIcLxObWp8=
 github.com/mailru/easyjson v0.0.0-20160728113105-d5b7844b561a/go.mod h1:C1wdFJiN94OJF2b5HbByQZoLdCWB1Yqtg26g4irojpc=
 github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421/go.mod h1:6dJC0mAP4ikYIbvyc7fijjWJddQyLn8Ig3JB5CqoB9Q=
 github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd h1:TRLaZ9cD/w8PVh93nsPXa1VrQ6jlwL5oN8l14QlcNfg=

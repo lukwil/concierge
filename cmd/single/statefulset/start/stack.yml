@@ -1,0 +1,16 @@
+version: 1.0
+provider:
+  name: openfaas
+  gateway: http://localhost:8080/faas/
+functions:
+  start-statefulset:
+    lang: golang-middleware
+    namespace: openfaas
+    handler: ./function
+    image: lukwil/start-statefulset:latest
+    build_args:
+      GO111MODULE: on
+    annotations:
+      com.openfaas.serviceaccount: fn-start-statefulset
+    environment:
+      namespace: container

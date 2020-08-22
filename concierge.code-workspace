@@ -5,8 +5,20 @@
 			"path": "cmd/common"
 		},
 		{
+			"name": "single-common",
+			"path": "cmd/single/common"
+		},
+		{
 			"name": "statefulset-create",
 			"path": "cmd/single/statefulset/create/function"
+		},
+		{
+			"name": "statefulset-start",
+			"path": "cmd/single/statefulset/start/function"
+		},
+		{
+			"name": "statefulset-stop",
+			"path": "cmd/single/statefulset/stop/function"
 		},
 		{
 			"name": "statefulset-delete",
