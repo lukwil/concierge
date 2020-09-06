@@ -1,0 +1,18 @@
+version: 1.0
+provider:
+  name: openfaas
+  gateway: http://localhost:8080/faas/
+functions:
+  event-watcher:
+    lang: dockerfile
+    namespace: openfaas
+    handler: ./event-watcher
+    image: lukwil/event-watcher:latest
+    build_args:
+      GO111MODULE: on
+    annotations:
+      com.openfaas.serviceaccount: fn-event-watcher
+    environment:
+      namespace: container
+      graphql_url: http://hasura.hasura.svc.cluster.local/v1/graphql
+

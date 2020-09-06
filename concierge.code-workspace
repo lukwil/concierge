@@ -5,6 +5,10 @@
 			"path": "cmd/common"
 		},
 		{
+			"name": "watch",
+			"path": "cmd/watch/event-watcher"
+		},
+		{
 			"name": "single-common",
 			"path": "cmd/single/common"
 		},
