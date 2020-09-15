@@ -1,0 +1,16 @@
+version: 1.0
+provider:
+  name: openfaas
+  gateway: http://localhost:8080/faas/
+functions:
+  container-warnings:
+    lang: golang-middleware
+    namespace: openfaas
+    handler: ./function
+    image: lukwil/container-warnings:latest
+    build_args:
+      GO111MODULE: on
+    annotations:
+      com.openfaas.serviceaccount: fn-container-warnings
+    environment:
+      namespace: container

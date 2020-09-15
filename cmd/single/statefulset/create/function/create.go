@@ -42,25 +42,32 @@ type single_deployment_pk_columns_input struct {
 
 // Non-idiomatic Go naming, but needed by graphql library
 type single_deployment_set_input struct {
-	NameK8s string `json:"name_k8s"`
+	URLPrefix string `json:"url_prefix"`
+	NameK8s   string `json:"name_k8s"`
 }
 
-func createStatefulSet(p *hasura.SingleDeploymentPayload, namespace string) (string, error) {
+func createStatefulSet(p *hasura.SingleDeploymentPayload, namespace string) (statefulSetName string, urlPrefixName string, err error) {
+	id := p.Event.Data.New.ID
+	name := fmt.Sprintf("%v-%s", namespace, uuid.New())
 	namespace = strings.TrimSpace(namespace)
-	image := strings.TrimSpace(p.Event.Data.New.ContainerImage)
-
-	urlPrefix := p.Event.Data.New.URLPrefix
 	cpu := p.Event.Data.New.CPU
 	ram := p.Event.Data.New.RAM
 	volumeID := p.Event.Data.New.VolumeID
+	image := strings.TrimSpace(p.Event.Data.New.ContainerImage)
+
+	urlPrefix := p.Event.Data.New.URLPrefix
+	// If the user does not want to set his own URLPrefix but wants to use the name given to the container as URLPrefix
+	// He cannot know the container name in advance (because of UUID), thus this workaround
+	if urlPrefix == "name_k8s" {
+		urlPrefix = fmt.Sprintf("/%v", name)
+	}
 
 	clientset, err := clientset.SetupInternal()
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	replicas := int32(1)
-	name := fmt.Sprintf("%v-%s", namespace, uuid.New())
 	cpuStr := fmt.Sprintf("%vm", cpu)
 	ramStr := fmt.Sprintf("%vMi", ram)
 	fsGroup := int64(100)
@@ -120,13 +127,13 @@ func createStatefulSet(p *hasura.SingleDeploymentPayload, namespace string) (str
 		},
 	}
 
-	// create a volume if required by user
+	// create a volume if required by the user
 	if volumeID != 0 {
 		vol, err := getVolumeDetails(volumeID)
 		if err != nil {
 			errMsg := fmt.Sprintf("Cannot set volume in database: %s", err)
 			log.Println(errMsg)
-			return "", err
+			return "", "", err
 		}
 
 		storageStr := fmt.Sprintf("%vMi", vol.Size)
@@ -159,20 +166,18 @@ func createStatefulSet(p *hasura.SingleDeploymentPayload, namespace string) (str
 	}
 
 	log.Println("Creating StatefulSet...")
-	result, err := statefulSetClient.Create(context.TODO(), statefulSet, metav1.CreateOptions{})
-	if err != nil {
-		return "", err
+	if _, err := statefulSetClient.Create(context.TODO(), statefulSet, metav1.CreateOptions{}); err != nil {
+		return "", "", err
 	}
-	statefulSetName := result.GetObjectMeta().GetName()
-	log.Printf("Created StatefulSet %q.\n", statefulSetName)
+	log.Printf("Created StatefulSet %q.\n", name)
 
-	if err := setK8sName(p.Event.Data.New.ID, statefulSetName); err != nil {
-		errMsg := fmt.Sprintf("Cannot set K8sName in database: %s", err)
+	if err := updateTable(id, name, urlPrefix); err != nil {
+		errMsg := fmt.Sprintf("Cannot update table (name_k8s, url_prefix) in database: %s", err)
 		log.Println(errMsg)
-		return "", err
+		return "", "", err
 	}
 
-	return statefulSetName, nil
+	return name, urlPrefix, nil
 }
 
 func getVolumeDetails(volumeID int) (*volume, error) {
@@ -193,23 +198,30 @@ func getVolumeDetails(volumeID int) (*volume, error) {
 	return vol, nil
 }
 
-func setK8sName(id int, name string) error {
+func updateTable(id int, name, urlPrefix string) error {
 	client := hasura.Client()
 
 	pkColumns := single_deployment_pk_columns_input{
 		ID: id,
 	}
 	set := single_deployment_set_input{
-		NameK8s: name,
+		URLPrefix: urlPrefix,
+		NameK8s:   name,
 	}
 	variables := map[string]interface{}{
 		"pkColumns": pkColumns,
 		"set":       set,
 	}
+	// variables := map[string]interface{}{
+	// 	"pkColumns": pkColumns,
+	// 	"set": map[string]interface{}{
+	// 		"name_k8s":   name,
+	// 		"url_prefix": urlPrefix,
+	// 	},
+	// }
 
 	if err := client.Mutate(context.TODO(), &singleDeploymentPayload, variables); err != nil {
 		return err
 	}
-
 	return nil
 }

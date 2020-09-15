@@ -13,6 +13,14 @@
 			"path": "cmd/single/common"
 		},
 		{
+			"name": "watch",
+			"path": "cmd/watch/event-watcher"
+		},
+		{
+			"name": "container-warnings",
+			"path": "cmd/container-warnings/function"
+		},
+		{
 			"name": "statefulset-create",
 			"path": "cmd/single/statefulset/create/function"
 		},

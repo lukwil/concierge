@@ -37,7 +37,7 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 	if val, ok := os.LookupEnv("namespace"); ok {
 		namespace = val
 	}
-	name, err := createStatefulSet(&payload, namespace)
+	name, urlPrefix, err := createStatefulSet(&payload, namespace)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		errMsg := fmt.Sprintf("Cannot create StatefulSet: %s", err)
@@ -52,7 +52,7 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 	}
 	msg := message{
 		Name:      name,
-		URLPrefix: payload.Event.Data.New.URLPrefix,
+		URLPrefix: urlPrefix,
 	}
 	msgBytes, err := json.Marshal(msg)
 	if err != nil {

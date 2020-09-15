@@ -50,7 +50,7 @@ func createVirtualSvc(name, namespace, urlPrefix string) error {
 						},
 					},
 					Rewrite: &networkingv1alpha3.HTTPRewrite{
-						Uri: urlPrefix,
+						Uri: fmt.Sprintf("%s/", urlPrefix),
 					},
 					Route: []*networkingv1alpha3.HTTPRouteDestination{
 						{

@@ -45,6 +45,12 @@ var singleDeploymentPayload struct {
 	} `graphql:"update_single_deployment(where: $where, _set: $set)"`
 }
 
+var singleDeploymentDeletePayload struct {
+	SingleDeploymentDelete struct {
+		AffectedRows graphql.Int `graphql:"affected_rows"`
+	} `graphql:"delete_single_deployment(where: $where)"`
+}
+
 // Non-idiomatic Go naming, but needed by graphql library
 type single_deployment_set_input struct {
 	StatusID int `json:"status_id"`
@@ -163,11 +169,10 @@ func onUpdate(oldObj, newObj interface{}) {
 func onDelete(obj interface{}) {
 	objCast := obj.(*appsv1.StatefulSet)
 	name := objCast.Name
-	status := getStatus(objCast)
 
 	log.Printf("DELETED --- %v: %v\n", name, status)
-	if err := updateTable(name, status); err != nil {
-		log.Println("Cannot update table")
+	if err := deleteObjFromTable(name); err != nil {
+		log.Println("Cannot delete object")
 		log.Println(err)
 	}
 }
@@ -217,6 +222,23 @@ func updateTable(name string, status graphql.String) error {
 		"set":   set,
 	}
 	if err := client.Mutate(context.TODO(), &singleDeploymentPayload, variables); err != nil {
+		log.Println(err)
+		return err
+	}
+
+	return nil
+}
+
+func deleteObjFromTable(name string) error {
+	client := hasura.Client()
+
+	eq := single_deployment_bool_exp{}
+	eq.NameK8s.EQ = name
+
+	variables := map[string]interface{}{
+		"where": eq,
+	}
+	if err := client.Mutate(context.TODO(), &singleDeploymentDeletePayload, variables); err != nil {
 		log.Println(err)
 		return err
 	}
