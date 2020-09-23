@@ -1,0 +1,19 @@
+version: 1.0
+provider:
+  name: openfaas
+  gateway: http://localhost:8080/faas/
+functions:
+  create-mpi:
+    lang: golang-middleware
+    namespace: openfaas
+    handler: ./function
+    image: lukwil/create-mpi:latest
+    build_args:
+      GO111MODULE: on
+    annotations:
+      com.openfaas.serviceaccount: fn-create-mpi
+    environment:
+      namespace: dist
+      graphql_url: http://hasura.hasura.svc.cluster.local/v1/graphql
+      nats_url: nats://nats.openfaas:4222
+      topic_create_svc: nats-create-svc

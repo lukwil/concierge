@@ -1,3 +1,4 @@
 **/build
 **/template
-website/node_modules
+
+# Node modules, logs etc. is handled by different gitignore file in web folder

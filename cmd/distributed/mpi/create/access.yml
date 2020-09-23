@@ -1,0 +1,31 @@
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: fn-create-mpi-role
+  namespace: dist
+rules:
+- apiGroups: ["kubeflow.org"]
+  resources: ["mpijobs"]
+  verbs: ["create"]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: fn-create-mpi-role-binding
+  namespace: dist
+subjects:
+- kind: ServiceAccount
+  name: fn-create-mpi
+  namespace: openfaas
+roleRef:
+  kind: Role
+  name: fn-create-mpi-role
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: fn-create-mpi
+  namespace: openfaas
+  labels:
+    app: openfaas

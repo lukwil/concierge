@@ -56,7 +56,14 @@
 			"name": "virtual-svc-delete",
 			"path": "cmd/single/virtualsvc/delete/function"
 		},
-
+		{
+			"name": "mpi-create",
+			"path": "cmd/distributed/mpi/create/function"
+		},
+		{
+			"name": "mpi-delete",
+			"path": "cmd/distributed/mpi/delete/function"
+		},
 		{
 			"name": "concierge",
 			"path": "."
