@@ -12,7 +12,8 @@ import (
 )
 
 type payload struct {
-	Name string `json:"name"`
+	Name      string `json:"name"`
+	Namespace string `json:"namespace"`
 }
 
 func Handle(w http.ResponseWriter, r *http.Request) {
@@ -32,11 +33,8 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid payload", http.StatusBadRequest)
 		return
 	}
-	namespace := "container"
-	if val, ok := os.LookupEnv("namespace"); ok {
-		namespace = val
-	}
-	if err := deleteSvc(payload.Name, namespace); err != nil {
+
+	if err := deleteSvc(payload.Name, payload.Namespace); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		errMsg := fmt.Sprintf("Cannot delete Service: %s", err)
 		log.Println(errMsg)
@@ -44,9 +42,33 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	subject := "nats-delete-statefulset"
+	subjectSingle := "nats-delete-statefulset"
 	if val, ok := os.LookupEnv("topic_delete_statefulset"); ok {
-		subject = val
+		subjectSingle = val
+	}
+	subjectDistributed := "nats-delete-mpi"
+	if val, ok := os.LookupEnv("topic_delete_mpi"); ok {
+		subjectDistributed = val
+	}
+
+	namespaceSingle := "container"
+	if val, ok := os.LookupEnv("namespace_single"); ok {
+		namespaceSingle = val
+	}
+	namespaceDistributed := "dist"
+	if val, ok := os.LookupEnv("namespace_dist"); ok {
+		namespaceDistributed = val
+	}
+
+	subject := ""
+	if payload.Namespace == namespaceSingle {
+		subject = subjectSingle
+	} else if payload.Namespace == namespaceDistributed {
+		subject = subjectDistributed
+	} else {
+		log.Printf("namespace %s not recognized", payload.Namespace)
+		http.Error(w, "invalid namespace", http.StatusBadRequest)
+		return
 	}
 
 	payloadBytes, err := json.Marshal(payload)

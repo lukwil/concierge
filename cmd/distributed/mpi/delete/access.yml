@@ -1,0 +1,31 @@
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: fn-delete-mpi-role
+  namespace: dist
+rules:
+- apiGroups: ["kubeflow.org"]
+  resources: ["mpijobs"]
+  verbs: ["delete"]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: fn-delete-mpi-role-binding
+  namespace: dist
+subjects:
+- kind: ServiceAccount
+  name: fn-delete-mpi
+  namespace: openfaas
+roleRef:
+  kind: Role
+  name: fn-delete-mpi-role
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: fn-delete-mpi
+  namespace: openfaas
+  labels:
+    app: openfaas

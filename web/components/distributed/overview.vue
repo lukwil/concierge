@@ -2,7 +2,7 @@
   <v-layout column justify-center align-center>
     <v-card>
       <v-card-title>
-        Single Deployments
+        Distributed Deployments
         <v-spacer></v-spacer>
         <v-text-field
           v-model="search"
@@ -30,10 +30,10 @@
             <v-tooltip bottom>
               <template v-slot:activator="{ on, attrs }">
                 <v-icon
-                  :disabled="item.status.name !== 'started'"
+                  :disabled="item.status.name !== 'running'"
                   medium
-                  v-bind="attrs"
                   class="mr-2"
+                  v-bind="attrs"
                   v-on="on"
                   @click="openInNewTab(item.name_k8s)"
                   >mdi-open-in-new</v-icon
@@ -89,64 +89,48 @@
 
             <v-tooltip bottom>
               <template v-slot:activator="{ on, attrs }">
-                <v-icon
-                  v-show="item.status.name == 'stopped'"
-                  medium
-                  color="success"
-                  class="mr-2"
+                <v-progress-circular
+                  v-show="item.status.name == 'created'"
+                  :size="20"
+                  :width="2"
                   v-bind="attrs"
+                  indeterminate
+                  color="success"
                   v-on="on"
-                  @click="startContainer(item.name_k8s)"
-                  >mdi-play</v-icon
-                >
+                ></v-progress-circular>
               </template>
-              <span>Start</span>
+              <span>Configuring/Starting...</span>
             </v-tooltip>
 
             <v-tooltip bottom>
               <template v-slot:activator="{ on, attrs }">
                 <v-icon
-                  v-show="item.status.name == 'started'"
+                  v-show="item.status.name == 'running'"
                   medium
-                  color="warning"
+                  color="success"
                   class="mr-2"
                   v-bind="attrs"
                   v-on="on"
                   @click="stopContainer(item.name_k8s)"
-                  >mdi-pause</v-icon
+                  >mdi-checkbox-blank-circle</v-icon
                 >
               </template>
-              <span>Stop</span>
+              <span>running...</span>
             </v-tooltip>
 
             <v-tooltip bottom>
               <template v-slot:activator="{ on, attrs }">
-                <v-progress-circular
-                  v-show="item.status.name == 'stopping'"
-                  :size="20"
-                  :width="2"
-                  indeterminate
-                  v-bind="attrs"
-                  color="warning"
-                  v-on="on"
-                ></v-progress-circular>
-              </template>
-              <span>Stopping...</span>
-            </v-tooltip>
-
-            <v-tooltip bottom>
-              <template v-slot:activator="{ on, attrs }">
-                <v-progress-circular
-                  v-show="item.status.name == 'starting'"
-                  :size="20"
-                  :width="2"
-                  indeterminate
+                <v-icon
+                  v-show="item.status.name == 'succeeded'"
+                  medium
                   color="success"
+                  class="mr-2"
                   v-bind="attrs"
                   v-on="on"
-                ></v-progress-circular>
+                  >mdi-check-circle</v-icon
+                >
               </template>
-              <span>Starting...</span>
+              <span>succeeded!</span>
             </v-tooltip>
           </template>
           <v-icon
@@ -197,53 +181,56 @@
 import Vue from 'vue'
 import Snackbar from '@/components/Snackbar.vue'
 import gql from 'graphql-tag'
-import { Deployment, Warning } from '@/plugins/conciergeApi'
+import { DistributedDeployment, Warning } from '@/plugins/conciergeApi'
 export default Vue.extend({
   apollo: {
     $subscribe: {
-      singleDeployments: {
+      distributedDeployments: {
         query: gql`
           subscription {
-            single_deployment {
+            distributed_deployment {
               id
-              cpu
-              gpu
               name
               name_k8s
               container_image
-              ram
+              worker_count
+              launcher_cpu
+              launcher_ram
+              worker_cpu
+              worker_ram
+              worker_gpu
               status {
                 name
-              }
-              volume {
-                size
               }
             }
           }
         `,
         result(data: any) {
-          this.deployments = data.data.single_deployment
+          console.log(data.data.distributed_deployment)
+          this.deployments = data.data.distributed_deployment
         },
       },
     },
   },
-  name: 'ContainerOverview',
+  name: 'DistributedOverview',
   components: {
     Snackbar,
   },
   data() {
     return {
       snackbar: new Snackbar(),
-      deployments: [] as Deployment[],
+      deployments: [] as DistributedDeployment[],
       currentNameK8s: '',
       search: '',
       headers: [
         { text: 'Name', value: 'name' },
         { text: 'Container image', value: 'container_image' },
-        { text: 'CPU', value: 'cpu' },
-        { text: 'RAM (MB)', value: 'ram' },
-        { text: 'GPU', value: 'gpu' },
-        { text: 'Volume Size (MB)', value: 'volume.size' },
+        { text: 'Worker count', value: 'worker_count' },
+        { text: 'Launcher: CPU', value: 'launcher_cpu' },
+        { text: 'Launcher: RAM (MB)', value: 'launcher_ram' },
+        { text: 'Worker: CPU', value: 'worker_cpu' },
+        { text: 'Worker: RAM (MB)', value: 'worker_ram' },
+        { text: 'Worker: GPU', value: 'worker_gpu' },
         { text: 'Actions', value: 'actions', sortable: false },
         // { text: 'Status', value: 'Status' },
       ],
@@ -308,47 +295,11 @@ export default Vue.extend({
       this.dialog = false
       this.warnings = []
     },
-    stopContainer(name: string) {
-      this.$apollo
-        .mutate({
-          mutation: gql`
-            mutation stopStatefulSet($nameK8s: Input! = { nameK8s: "" }) {
-              stopStatefulSet(nameK8s: $nameK8s) {
-                Replicas
-              }
-            }
-          `,
-          variables: {
-            nameK8s: { nameK8s: name },
-          },
-        })
-        .then((data) => {
-          console.log(data)
-        })
-    },
-    startContainer(name: string) {
-      this.$apollo
-        .mutate({
-          mutation: gql`
-            mutation startStatefulSet($nameK8s: Input! = { nameK8s: "" }) {
-              startStatefulSet(nameK8s: $nameK8s) {
-                Replicas
-              }
-            }
-          `,
-          variables: {
-            nameK8s: { nameK8s: name },
-          },
-        })
-        .then((data) => {
-          console.log(data)
-        })
-    },
     deleteContainer(id: number) {
       this.$apollo.mutate({
         mutation: gql`
-          mutation deleteSingleDeploymentByPk($id: Int!) {
-            delete_single_deployment_by_pk(id: $id) {
+          mutation deleteDistributedDeploymentByPk($id: Int!) {
+            delete_distributed_deployment_by_pk(id: $id) {
               id
             }
           }

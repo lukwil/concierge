@@ -24,6 +24,21 @@ export interface Deployment {
     status: Status
 }
 
+export interface DistributedDeployment {
+    id: number
+    name: string
+    name_k8s: string
+    container_image: string
+    worker_count: number
+    launcher_cpu: number
+    launcher_ram: number
+    worker_cpu: number
+    worker_ram: number
+    worker_gpu: number
+    status: Status
+}
+
+
 export interface Warning {
     timestamp: string
     message: string

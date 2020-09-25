@@ -14,6 +14,7 @@ import (
 
 type message struct {
 	Name      string `json:"name"`
+	Namespace string `json:"namespace"`
 	URLPrefix string `json:"url_prefix"`
 }
 
@@ -52,6 +53,7 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 	}
 	msg := message{
 		Name:      name,
+		Namespace: namespace,
 		URLPrefix: urlPrefix,
 	}
 	msgBytes, err := json.Marshal(msg)

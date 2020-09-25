@@ -14,7 +14,9 @@ functions:
       topic: nats-delete-svc
       com.openfaas.serviceaccount: fn-delete-svc
     environment:
-      namespace: container
       graphql_url: http://hasura.hasura.svc.cluster.local/v1/graphql
       nats_url: nats://nats.openfaas:4222
+      namespace_single: container
+      namespace_distributed: dist
       topic_delete_statefulset: nats-delete-statefulset
+      topic_delete_mpi: nats-delete-mpi

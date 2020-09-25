@@ -74,8 +74,8 @@ export default {
   apollo: {
     clientConfigs: {
       default: {
-        httpEndpoint: 'http://192.168.178.22:8080/hasura/v1/graphql',
-        wsEndpoint: 'ws://192.168.178.22:8080/hasura/v1/graphql',
+        httpEndpoint: 'http://localhost:8082/v1/graphql',
+        wsEndpoint: 'ws://localhost:8082/v1/graphql',
       },
     },
   },

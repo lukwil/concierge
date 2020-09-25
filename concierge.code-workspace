@@ -65,9 +65,14 @@
 			"path": "cmd/distributed/mpi/delete/function"
 		},
 		{
+			"name": "web",
+			"path": "web"
+		},
+		{
 			"name": "concierge",
 			"path": "."
 		}
+
 	],
 	"settings": {}
 }

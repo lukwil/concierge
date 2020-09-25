@@ -13,6 +13,7 @@ import (
 
 type payload struct {
 	Name      string `json:"name"`
+	Namespace string `json:"namespace"`
 	URLPrefix string `json:"url_prefix"`
 }
 
@@ -33,11 +34,8 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid payload", http.StatusBadRequest)
 		return
 	}
-	namespace := "container"
-	if val, ok := os.LookupEnv("namespace"); ok {
-		namespace = val
-	}
-	if err := createSvc(payload.Name, namespace); err != nil {
+
+	if err := createSvc(payload.Name, payload.Namespace); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		errMsg := fmt.Sprintf("Cannot create Service: %s", err)
 		log.Println(errMsg)

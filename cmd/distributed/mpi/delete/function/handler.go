@@ -6,12 +6,11 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 )
 
 type payload struct {
-	Name      string `json:"name"`
-	Namespace string `json:"namespace"`
-	URLPrefix string `json:"url_prefix"`
+	Name string `json:"name"`
 }
 
 func Handle(w http.ResponseWriter, r *http.Request) {
@@ -31,10 +30,13 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid payload", http.StatusBadRequest)
 		return
 	}
-
-	if err := createVirtualSvc(payload.Name, payload.Namespace, payload.URLPrefix); err != nil {
+	namespace := "dist"
+	if val, ok := os.LookupEnv("namespace"); ok {
+		namespace = val
+	}
+	if err := deleteMPIJob(payload.Name, namespace); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		errMsg := fmt.Sprintf("Cannot create VirtualService: %s", err)
+		errMsg := fmt.Sprintf("Cannot delete StatefulSet: %s", err)
 		log.Println(errMsg)
 		w.Write([]byte(errMsg))
 		return
