@@ -1,7 +1,7 @@
 <template>
   <v-card>
     <v-tabs
-      v-model="tab"
+      v-model="activeTab"
       background-color="primary"
       centered
       dark
@@ -19,7 +19,7 @@
       </v-tab>
     </v-tabs>
 
-    <v-tabs-items v-model="tab">
+    <v-tabs-items v-model="activeTab">
       <v-tab-item :key="1" :value="'tab-1'">
         <distributed-overview />
       </v-tab-item>
@@ -42,8 +42,7 @@ export default Vue.extend({
   },
   data() {
     return {
-      e6: 1,
-      tab: null,
+      activeTab: null,
       text:
         'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
     }

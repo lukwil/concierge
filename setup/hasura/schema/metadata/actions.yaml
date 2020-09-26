@@ -1,0 +1,28 @@
+actions:
+- name: actionName
+  definition:
+    kind: synchronous
+    handler: http://host.docker.internal:3000
+- name: containerWarnings
+  definition:
+    kind: ""
+    handler: http://gateway.openfaas.svc.cluster.local:8080/function/container-warnings
+- name: startStatefulSet
+  definition:
+    kind: synchronous
+    handler: http://gateway.openfaas.svc.cluster.local:8080/function/start-statefulset
+- name: stopStatefulSet
+  definition:
+    kind: synchronous
+    handler: http://gateway.openfaas.svc.cluster.local:8080/function/stop-statefulset
+custom_types:
+  enums: []
+  input_objects:
+  - name: Input
+  - name: SampleInput
+  - name: ContainerWarningsInput
+  objects:
+  - name: Output
+  - name: SampleOutput
+  - name: ContainerWarningsOutput
+  scalars: []

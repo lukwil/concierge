@@ -71,8 +71,11 @@ github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+o
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
+github.com/lukwil/concierge v0.0.2 h1:Wy1AJpZE4CuoBvVDcrWtFq30zz7y3vmaH7nOb1CtECQ=
 github.com/lukwil/concierge/cmd/common v0.0.0-20200822175006-0b86df0ecadd h1:pX4czCv/ZURjEG2rwMDNkXY8wFr/ldb2vtPaStC+/dU=
 github.com/lukwil/concierge/cmd/common v0.0.0-20200822175006-0b86df0ecadd/go.mod h1:wK1Xkn2QVSDJ5aTitZ0UGGzdKDooHVnv8IIcLxObWp8=
+github.com/lukwil/concierge/cmd/common v0.0.0-20200925161031-91c0a7a1a784 h1:5VySvlFbXrvLl4YCEwpo9QaDThtNoaspa0zfnlJmuWw=
+github.com/lukwil/concierge/cmd/common v0.0.0-20200925161031-91c0a7a1a784/go.mod h1:wK1Xkn2QVSDJ5aTitZ0UGGzdKDooHVnv8IIcLxObWp8=
 github.com/mailru/easyjson v0.0.0-20160728113105-d5b7844b561a/go.mod h1:C1wdFJiN94OJF2b5HbByQZoLdCWB1Yqtg26g4irojpc=
 github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421/go.mod h1:6dJC0mAP4ikYIbvyc7fijjWJddQyLn8Ig3JB5CqoB9Q=
 github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd h1:TRLaZ9cD/w8PVh93nsPXa1VrQ6jlwL5oN8l14QlcNfg=

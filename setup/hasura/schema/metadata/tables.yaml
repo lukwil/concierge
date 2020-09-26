@@ -1,0 +1,90 @@
+- table:
+    schema: public
+    name: bla
+- table:
+    schema: public
+    name: distributed_deployment
+  object_relationships:
+  - name: status
+    using:
+      foreign_key_constraint_on: status_id
+  event_triggers:
+  - name: distributed
+    definition:
+      enable_manual: false
+      insert:
+        columns: '*'
+    retry_conf:
+      num_retries: 0
+      interval_sec: 10
+      timeout_sec: 60
+    webhook: http://gateway.openfaas.svc.cluster.local:8080/function/create-mpi
+  - name: distributed_delete
+    definition:
+      enable_manual: false
+      delete:
+        columns: '*'
+    retry_conf:
+      num_retries: 0
+      interval_sec: 10
+      timeout_sec: 60
+    webhook: http://gateway.openfaas.svc.cluster.local:8080/function/delete-virtualsvc
+- table:
+    schema: public
+    name: single_deployment
+  object_relationships:
+  - name: status
+    using:
+      foreign_key_constraint_on: status_id
+  - name: volume
+    using:
+      foreign_key_constraint_on: volume_id
+  event_triggers:
+  - name: single
+    definition:
+      enable_manual: true
+      insert:
+        columns: '*'
+    retry_conf:
+      num_retries: 0
+      interval_sec: 10
+      timeout_sec: 60
+    webhook: http://gateway.openfaas.svc.cluster.local:8080/function/create-statefulset
+  - name: single_delete
+    definition:
+      enable_manual: true
+      delete:
+        columns: '*'
+    retry_conf:
+      num_retries: 0
+      interval_sec: 10
+      timeout_sec: 60
+    webhook: http://gateway.openfaas.svc.cluster.local:8080/function/delete-virtualsvc
+- table:
+    schema: public
+    name: status
+  array_relationships:
+  - name: single_deployments
+    using:
+      foreign_key_constraint_on:
+        column: status_id
+        table:
+          schema: public
+          name: single_deployment
+- table:
+    schema: public
+    name: tab
+- table:
+    schema: public
+    name: test
+- table:
+    schema: public
+    name: volume
+  array_relationships:
+  - name: single_deployments
+    using:
+      foreign_key_constraint_on:
+        column: volume_id
+        table:
+          schema: public
+          name: single_deployment

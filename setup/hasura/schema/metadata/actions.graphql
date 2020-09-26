@@ -1,0 +1,56 @@
+type Mutation {
+  actionName (
+    arg1: SampleInput!
+  ): SampleOutput
+}
+
+
+type Query {
+  containerWarnings (
+    nameK8s: ContainerWarningsInput!
+  ): [ContainerWarningsOutput]
+}
+
+
+type Mutation {
+  startStatefulSet (
+    nameK8s: Input!
+  ): Output
+}
+
+
+type Mutation {
+  stopStatefulSet (
+    nameK8s: Input!
+  ): Output
+}
+
+
+
+
+input Input {
+  nameK8s : String!
+}
+
+input SampleInput {
+  username : String!
+  password : String!
+}
+
+input ContainerWarningsInput {
+  nameK8s : String!
+}
+
+type Output {
+  Replicas : Int!
+}
+
+type SampleOutput {
+  accessToken : String!
+}
+
+type ContainerWarningsOutput {
+  Timestamp : String!
+  Message : String!
+}
+

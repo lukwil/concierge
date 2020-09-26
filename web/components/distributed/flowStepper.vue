@@ -24,6 +24,9 @@
       <v-btn :disabled="!deploymentNameValid" color="primary" @click="e6 = 2"
         >Continue</v-btn
       >
+      <v-btn icon to="/singleContainer">
+        <v-icon>window</v-icon> Link Text
+      </v-btn>
     </v-stepper-content>
 
     <v-stepper-step :complete="e6 > 2" step="2"
@@ -488,44 +491,37 @@ export default Vue.extend({
       }
     },
     createSingleDeployment() {
-      const container: any = {
+      const deployment: any = {
         name: this.editedItem.deploymentName,
         container_image: this.editedItem.containerImage,
-        cpu: this.editedItem.cpu,
-        ram: this.editedItem.ram,
-        gpu: this.editedItem.gpu,
-      }
-
-      if (this.editedItem.usePersistence) {
-        const volume = {
-          data: {
-            size: this.editedItem.volumeSize,
-            mount_path: this.editedItem.volumeMountPath,
-          },
-        }
-        container.volume = volume
+        worker_count: this.editedItem.workerCount,
+        launcher_cpu: this.editedItem.launcherCpu,
+        launcher_ram: this.editedItem.launcherRam,
+        worker_cpu: this.editedItem.workerCpu,
+        worker_ram: this.editedItem.workerRam,
+        worker_gpu: this.editedItem.workerGpu,
       }
 
       if (this.editedItem.overrideURLPrefix) {
-        container.url_prefix = this.editedItem.urlPrefix
+        deployment.url_prefix = this.editedItem.urlPrefix
         if (this.editedItem.useContainerNameAsURLPrefix) {
-          container.url_prefix = 'name_k8s'
+          deployment.url_prefix = 'name_k8s'
         }
       }
 
       this.$apollo
         .mutate({
           mutation: gql`
-            mutation insertSingleDeployment(
-              $container: single_deployment_insert_input!
+            mutation insertDistributedDeployment(
+              $deployment: distributed_deployment_insert_input!
             ) {
-              insert_single_deployment_one(object: $container) {
+              insert_distributed_deployment_one(object: $deployment) {
                 id
               }
             }
           `,
           variables: {
-            container,
+            deployment,
           },
         })
         .then((data) => {

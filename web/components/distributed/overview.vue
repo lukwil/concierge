@@ -244,7 +244,6 @@ export default Vue.extend({
       height: 'calc(80vh - 150px)',
       editedIndex: -1,
       tab: [],
-      singleDeployments: [] as Deployment[],
     }
   },
   computed: {},
