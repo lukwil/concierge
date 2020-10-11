@@ -24,9 +24,6 @@
       <v-btn :disabled="!deploymentNameValid" color="primary" @click="e6 = 2"
         >Continue</v-btn
       >
-      <v-btn icon to="/singleContainer">
-        <v-icon>window</v-icon> Link Text
-      </v-btn>
     </v-stepper-content>
 
     <v-stepper-step :complete="e6 > 2" step="2"
@@ -480,14 +477,6 @@ export default Vue.extend({
         this.urlPrefixValid = true
       } else {
         this.editedItem.urlPrefix = '/'
-      }
-    },
-    usePersistenceChange(event: boolean) {
-      if (!event) {
-        this.persistenceValid = true
-      } else {
-        this.editedItem.volumeSize = 512
-        this.editedItem.volumeMountPath = '/'
       }
     },
     createSingleDeployment() {

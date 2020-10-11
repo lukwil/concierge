@@ -275,7 +275,7 @@ export default Vue.extend({
       console.log(item)
     },
     openInNewTab(name: string) {
-      const url: string = `http://localhost:8080/${name}/`
+      const url: string = `http://10.5.12.6:31380/${name}/`
       window.open(url, '_blank')
     },
     showWarnings(name: string) {

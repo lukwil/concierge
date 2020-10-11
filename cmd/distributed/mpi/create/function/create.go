@@ -93,6 +93,9 @@ func createMPIJob(p *hasura.DistributedDeploymentPayload, namespace string) (str
 								Labels: map[string]string{
 									"app": launcherName,
 								},
+								Annotations: map[string]string{
+									"sidecar.istio.io/inject": "true",
+								},
 							},
 							Spec: corev1.PodSpec{
 								Containers: []corev1.Container{
