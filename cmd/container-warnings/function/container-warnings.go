@@ -10,14 +10,14 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func listWarnings(namespace, name string) ([]containerWarningsOutput, error) {
+func listWarnings(namespace, name string, selectorType selector) ([]containerWarningsOutput, error) {
 	clientset, err := clientset.SetupInternal()
 	if err != nil {
 		return nil, err
 	}
 
 	pods, err := clientset.CoreV1().Pods(namespace).List(context.TODO(), metav1.ListOptions{
-		LabelSelector: fmt.Sprintf("app=%v", name),
+		LabelSelector: fmt.Sprintf("%v=%v", selectorType, name),
 	})
 	if err != nil {
 		log.Printf("Pods cannot be listed: %v", err)
@@ -46,18 +46,19 @@ func warningsPerPod(clientset *kubernetes.Clientset, namespace, podName string) 
 	}
 	warnings := []containerWarningsOutput{}
 	for _, event := range events.Items {
-		if event.Reason == "Failed" {
-			msg := event.Message
-			timestamp := event.LastTimestamp
+		//if event.Type == "warning" {
+		msg := event.Message
+		timestamp := event.LastTimestamp
 
-			warning := containerWarningsOutput{
-				Timestamp: timestamp.String(),
-				Message:   msg,
-			}
-			warnings = append(warnings, warning)
-
-			fmt.Printf("%v -- %v -- %v\n\n", timestamp.String(), event.InvolvedObject.Name, msg)
+		warning := containerWarningsOutput{
+			Timestamp: timestamp.String(),
+			Reason:    event.Reason,
+			Message:   msg,
 		}
+		warnings = append(warnings, warning)
+		log.Println(event.Type)
+		log.Printf("%v -- %v -- %v -- %v\n\n", timestamp.String(), event.InvolvedObject.Name, event.Reason, msg)
+		//}
 	}
 	return warnings, nil
 }

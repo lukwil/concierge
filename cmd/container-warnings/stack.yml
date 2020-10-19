@@ -13,4 +13,5 @@ functions:
     annotations:
       com.openfaas.serviceaccount: fn-container-warnings
     environment:
-      namespace: container
+      single_prefix: container
+      distributed_prefix: dist

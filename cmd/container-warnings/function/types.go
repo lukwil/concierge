@@ -2,6 +2,7 @@ package function
 
 type containerWarningsOutput struct {
 	Timestamp string
+	Reason    string
 	Message   string
 }
 

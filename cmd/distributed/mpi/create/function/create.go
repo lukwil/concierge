@@ -11,8 +11,6 @@ import (
 	"github.com/lukwil/concierge/cmd/common/dynamic"
 	"github.com/lukwil/concierge/cmd/common/hasura"
 	"github.com/shurcooL/graphql"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -24,6 +22,13 @@ var distributedDeploymentPayload struct {
 	} `graphql:"update_distributed_deployment_by_pk(pk_columns: $pkColumns, _set: $set)"`
 }
 
+var distributedEnvironmentVariablesPayload struct {
+	DistributedEnvironmentVariables []struct {
+		Name  graphql.String `graphql:"name"`
+		Value graphql.String `graphql:"value"`
+	} `graphql:"distributed_environment_variables(where: $where)"`
+}
+
 // Non-idiomatic Go naming, but needed by graphql library
 type distributed_deployment_pk_columns_input struct {
 	ID int `json:"id"`
@@ -33,6 +38,13 @@ type distributed_deployment_pk_columns_input struct {
 type distributed_deployment_set_input struct {
 	URLPrefix string `json:"url_prefix"`
 	NameK8s   string `json:"name_k8s"`
+}
+
+// Non-idiomatic Go naming, but needed by graphql library
+type distributed_environment_variables_bool_exp struct {
+	DistributedDeploymentID struct {
+		EQ int `json:"_eq"`
+	} `json:"distributed_deployment_id"`
 }
 
 func createMPIJob(p *hasura.DistributedDeploymentPayload, namespace string) (string, string, error) {
@@ -78,9 +90,9 @@ func createMPIJob(p *hasura.DistributedDeploymentPayload, namespace string) (str
 		Object: map[string]interface{}{
 			"apiVersion": "kubeflow.org/v1alpha2",
 			"kind":       "MPIJob",
-			"metadata": metav1.ObjectMeta{
-				Name:      name,
-				Namespace: namespace,
+			"metadata": map[string]interface{}{
+				"name":      name,
+				"namespace": namespace,
 			},
 			"spec": map[string]interface{}{
 				"slotsPerWorker": &slotsPerWorker,
@@ -88,40 +100,35 @@ func createMPIJob(p *hasura.DistributedDeploymentPayload, namespace string) (str
 				"mpiReplicaSpecs": map[string]interface{}{
 					"Launcher": map[string]interface{}{
 						"replicas": &launcherReplicas,
-						"template": corev1.PodTemplateSpec{
-							ObjectMeta: metav1.ObjectMeta{
-								Labels: map[string]string{
+						"template": map[string]interface{}{
+							"metadata": map[string]interface{}{
+								"labels": map[string]interface{}{
 									"app": launcherName,
 								},
-								Annotations: map[string]string{
+								"annotations": map[string]interface{}{
 									"sidecar.istio.io/inject": "true",
 								},
 							},
-							Spec: corev1.PodSpec{
-								Containers: []corev1.Container{
-									{
-										Name:            launcherName,
-										Image:           image,
-										ImagePullPolicy: corev1.PullIfNotPresent,
-										Env: []corev1.EnvVar{
-											{
-												Name:  "URL_PREFIX",
-												Value: urlPrefix,
+							"spec": map[string]interface{}{
+								"containers": []interface{}{
+									map[string]interface{}{
+										"name":            launcherName,
+										"image":           image,
+										"imagePullPolicy": "IfNotPresent",
+										"resources": map[string]interface{}{
+											"requests": map[string]interface{}{
+												"cpu":    launcherCPUStr,
+												"memory": launcherRAMStr,
 											},
 										},
-										Resources: corev1.ResourceRequirements{
-											Requests: corev1.ResourceList{
-												corev1.ResourceCPU:    resource.MustParse(launcherCPUStr),
-												corev1.ResourceMemory: resource.MustParse(launcherRAMStr),
+										"ports": []interface{}{
+											map[string]interface{}{
+												"name":          "http",
+												"protocol":      "TCP",
+												"containerPort": int64(8888),
 											},
 										},
-										Ports: []corev1.ContainerPort{
-											{
-												Name:          "http",
-												Protocol:      corev1.ProtocolTCP,
-												ContainerPort: 8888,
-											},
-										},
+										"env": []interface{}{},
 									},
 								},
 							},
@@ -129,27 +136,28 @@ func createMPIJob(p *hasura.DistributedDeploymentPayload, namespace string) (str
 					},
 					"Worker": map[string]interface{}{
 						"replicas": &workerReplicas,
-						"template": corev1.PodTemplateSpec{
-							ObjectMeta: metav1.ObjectMeta{
-								Labels: map[string]string{
+						"template": map[string]interface{}{
+							"metadata": map[string]interface{}{
+								"labels": map[string]interface{}{
 									"app": workerName,
 								},
 							},
-							Spec: corev1.PodSpec{
-								Containers: []corev1.Container{
-									{
-										Name:            workerName,
-										Image:           image,
-										ImagePullPolicy: corev1.PullIfNotPresent,
-										Resources: corev1.ResourceRequirements{
-											Requests: corev1.ResourceList{
-												corev1.ResourceCPU:    resource.MustParse(workerCPUStr),
-												corev1.ResourceMemory: resource.MustParse(workerRAMStr),
+							"spec": map[string]interface{}{
+								"containers": []interface{}{
+									map[string]interface{}{
+										"name":            workerName,
+										"image":           image,
+										"imagePullPolicy": "IfNotPresent",
+										"resources": map[string]interface{}{
+											"requests": map[string]interface{}{
+												"cpu":    workerCPUStr,
+												"memory": workerRAMStr,
 											},
-											Limits: corev1.ResourceList{
-												"nvidia.com/gpu": resource.MustParse(strconv.Itoa(workerGPU)),
+											"limits": map[string]interface{}{
+												"nvidia.com/gpu": strconv.Itoa(workerGPU),
 											},
 										},
+										"env": []interface{}{},
 									},
 								},
 							},
@@ -159,6 +167,43 @@ func createMPIJob(p *hasura.DistributedDeploymentPayload, namespace string) (str
 			},
 		},
 	}
+
+	vars, err := getEnvVariables(id)
+	launcherVars := vars
+	launcherVars = append(launcherVars, map[string]interface{}{"name": "URL_PREFIX", "value": urlPrefix})
+	launcherVars = append(launcherVars, map[string]interface{}{"name": "IS_LAUNCHER", "value": "1"})
+	workerVars := vars
+	workerVars = append(workerVars, map[string]interface{}{"name": "IS_LAUNCHER", "value": "0"})
+
+	launcherContainers, found, err := unstructured.NestedSlice(mpi.Object, "spec", "mpiReplicaSpecs", "Launcher", "template", "spec", "containers")
+	if err != nil || !found || launcherContainers == nil {
+		log.Printf("deployment launcher containers not found or error in spec: %v", err)
+		return "", "", err
+	}
+	if err := unstructured.SetNestedSlice(launcherContainers[0].(map[string]interface{}), launcherVars, "env"); err != nil {
+		log.Printf("environment variables could not be set for launcher: %v", err)
+		return "", "", err
+	}
+	if err := unstructured.SetNestedField(mpi.Object, launcherContainers, "spec", "mpiReplicaSpecs", "Launcher", "template", "spec", "containers"); err != nil {
+		log.Printf("deployment launcher containers not be set or error in spec: %v", err)
+		return "", "", err
+	}
+
+	workerContainers, found, err := unstructured.NestedSlice(mpi.Object, "spec", "mpiReplicaSpecs", "Worker", "template", "spec", "containers")
+	if err != nil || !found || workerContainers == nil {
+		log.Printf("deployment worker containers not found or error in spec: %v", err)
+		return "", "", err
+	}
+	if err := unstructured.SetNestedSlice(workerContainers[0].(map[string]interface{}), workerVars, "env"); err != nil {
+		log.Printf("environment variables could not be set for workers: %v", err)
+		return "", "", err
+	}
+	if err := unstructured.SetNestedField(mpi.Object, workerContainers, "spec", "mpiReplicaSpecs", "Worker", "template", "spec", "containers"); err != nil {
+		log.Printf("deployment worker containers not be set or error in spec: %v", err)
+		return "", "", err
+	}
+
+	log.Println(mpi)
 
 	log.Println("Creating MPIJob...")
 	if _, err := client.Resource(mpiResource).Namespace(namespace).Create(context.TODO(), mpi, metav1.CreateOptions{}); err != nil {
@@ -174,6 +219,27 @@ func createMPIJob(p *hasura.DistributedDeploymentPayload, namespace string) (str
 	}
 
 	return name, urlPrefix, nil
+}
+
+func getEnvVariables(id int) ([]interface{}, error) {
+	client := hasura.Client()
+
+	eq := distributed_environment_variables_bool_exp{}
+	eq.DistributedDeploymentID.EQ = id
+
+	variables := map[string]interface{}{
+		"where": eq,
+	}
+	if err := client.Query(context.TODO(), &distributedEnvironmentVariablesPayload, variables); err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	var vars []interface{}
+	for _, env := range distributedEnvironmentVariablesPayload.DistributedEnvironmentVariables {
+		vars = append(vars, map[string]interface{}{"name": string(env.Name), "value": string(env.Value)})
+	}
+	return vars, nil
 }
 
 func updateTable(id int, name, urlPrefix string) error {

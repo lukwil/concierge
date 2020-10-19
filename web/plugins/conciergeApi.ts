@@ -41,6 +41,7 @@ export interface DistributedDeployment {
 
 export interface Warning {
     timestamp: string
+    reason: string
     message: string
 }
 

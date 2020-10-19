@@ -56,11 +56,10 @@
               <span>Show warnings</span>
             </v-tooltip>
 
-            <v-dialog v-model="dialog" :retain-focus="false">
+            <v-dialog v-model="dialog" :retain-focus="false" max-width="90vw">
               <v-card>
-                <v-card-title>
-                  <span class="headline">Warnings</span>
-                </v-card-title>
+                <v-card-title>Warnings</v-card-title>
+                <v-divider></v-divider>
 
                 <v-data-table
                   :items="warnings"
@@ -73,7 +72,7 @@
                   disable-pagination
                   loading-text="Loading... Please wait"
                 ></v-data-table>
-
+                <!-- <v-divider></v-divider> -->
                 <v-card-actions>
                   <v-spacer></v-spacer>
                   <v-btn
@@ -237,6 +236,7 @@ export default Vue.extend({
       dialog: false,
       dialogHeaders: [
         { text: 'Timestamp', value: 'Timestamp' },
+        { text: 'Reason', value: 'Reason' },
         { text: 'Message', value: 'Message' },
       ],
       warnings: [] as Warning[],
@@ -278,6 +278,7 @@ export default Vue.extend({
             ) {
               containerWarnings(nameK8s: $nameK8s) {
                 Timestamp
+                Reason
                 Message
               }
             }
@@ -287,6 +288,7 @@ export default Vue.extend({
           },
         })
         .then((data) => {
+          console.log(data.data.containerWarnings)
           this.warnings = data.data.containerWarnings
         })
     },
