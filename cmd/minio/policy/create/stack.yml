@@ -1,0 +1,20 @@
+version: 1.0
+provider:
+  name: openfaas
+  gateway: http://localhost:8080/faas/
+functions:
+  create-minio-policy:
+    lang: golang-middleware
+    namespace: openfaas
+    handler: ./function
+    image: lukwil/create-minio-policy:latest
+    build_args:
+      GO111MODULE: on
+    annotations:
+      topic: nats-create-minio-policy
+    environment:
+      minio_url: 127.0.0.1:9000
+      minio_access_key: AKIAIOSFODNN7EXAMPLE
+      minio_secret: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+      nats_url: nats://nats.openfaas:4222
+      topic_create_minio_user: nats-create-minio-user

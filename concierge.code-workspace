@@ -65,6 +65,46 @@
 			"path": "cmd/distributed/mpi/delete/function"
 		},
 		{
+			"name": "minio-common",
+			"path": "cmd/minio/common"
+		},
+		{
+			"name": "minio-bucket-create",
+			"path": "cmd/minio/bucket/create/function"
+		},
+		{
+			"name": "minio-bucket-delete",
+			"path": "cmd/minio/bucket/delete/function"
+		},
+		{
+			"name": "minio-policy-create",
+			"path": "cmd/minio/policy/create/function"
+		},
+		{
+			"name": "minio-policy-set",
+			"path": "cmd/minio/policy/set/function"
+		},
+		{
+			"name": "minio-policy-delete",
+			"path": "cmd/minio/policy/delete/function"
+		},
+		{
+			"name": "minio-user-create",
+			"path": "cmd/minio/user/create/function"
+		},
+		{
+			"name": "minio-user-delete",
+			"path": "cmd/minio/user/delete/function"
+		},
+		{
+			"name": "secret-create",
+			"path": "cmd/secret/create/function"
+		},
+		{
+			"name": "secret-delete",
+			"path": "cmd/secret/delete/function"
+		},
+		{
 			"name": "web",
 			"path": "web"
 		},

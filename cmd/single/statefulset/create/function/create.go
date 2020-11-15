@@ -48,8 +48,8 @@ type single_deployment_set_input struct {
 
 func createStatefulSet(p *hasura.SingleDeploymentPayload, namespace string) (statefulSetName string, urlPrefixName string, err error) {
 	id := p.Event.Data.New.ID
-	name := fmt.Sprintf("%v-%s", namespace, uuid.New())
 	namespace = strings.TrimSpace(namespace)
+	name := fmt.Sprintf("%v-%s", namespace, uuid.New())
 	cpu := p.Event.Data.New.CPU
 	ram := p.Event.Data.New.RAM
 	volumeID := p.Event.Data.New.VolumeID
