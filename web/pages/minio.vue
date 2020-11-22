@@ -1,12 +1,10 @@
 <template>
   <v-card flat>
     <br />
-    <div class="text-h3 font-weight-light" align="center">
-      Distributed Deployments
-    </div>
+    <div class="text-h3 font-weight-light" align="center">MinIO Buckets</div>
     <br />
     <v-tabs
-      v-model="activeTab"
+      v-model="tab"
       background-color="primary"
       centered
       dark
@@ -19,18 +17,18 @@
         <v-icon>mdi-format-list-bulleted</v-icon>
       </v-tab>
       <v-tab href="#tab-2">
-        New Deployment
+        New MinIO bucket
         <v-icon>mdi-plus-circle-outline</v-icon>
       </v-tab>
     </v-tabs>
 
-    <v-tabs-items v-model="activeTab">
+    <v-tabs-items v-model="tab">
       <v-tab-item :key="1" :value="'tab-1'">
-        <distributed-overview />
+        <minio-overview />
       </v-tab-item>
 
       <v-tab-item :key="2" :value="'tab-2'">
-        <distributed-flow-stepper />
+        <minio-flow-stepper />
       </v-tab-item>
     </v-tabs-items>
   </v-card>
@@ -38,16 +36,17 @@
 
 <script lang="ts">
 import Vue from 'vue'
-import DistributedFlowStepper from '@/components/distributed/flowStepper.vue'
-import DistributedOverview from '@/components/distributed/overview.vue'
+import MinioFlowStepper from '@/components/minio/flowStepper.vue'
+import MinioOverview from '@/components/minio/overview.vue'
 export default Vue.extend({
   components: {
-    DistributedFlowStepper,
-    DistributedOverview,
+    MinioFlowStepper,
+    MinioOverview,
   },
   data() {
     return {
-      activeTab: null,
+      e6: 1,
+      tab: null,
       text:
         'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
     }

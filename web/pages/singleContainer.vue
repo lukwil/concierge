@@ -1,5 +1,10 @@
 <template>
-  <v-card>
+  <v-card flat>
+    <br />
+    <div class="text-h3 font-weight-light" align="center">
+      Single Deployments
+    </div>
+    <br />
     <v-tabs
       v-model="tab"
       background-color="primary"

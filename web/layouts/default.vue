@@ -4,8 +4,10 @@
       v-model="drawer"
       :mini-variant="miniVariant"
       :clipped="clipped"
-      fixed
+      expand-on-hover
+      permanent
       app
+      width="300px"
     >
       <v-list>
         <v-list-item
@@ -25,11 +27,11 @@
       </v-list>
     </v-navigation-drawer>
     <v-app-bar :clipped-left="clipped" fixed app>
-      <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
+      <!-- <v-app-bar-nav-icon @click.stop="drawer = !drawer" /> -->
 
       <v-img
         class="mx-2"
-        src="https://vectr.com/lukwil/h4Hf1xmLBA.png?width=250&height=350&select=h4Hf1xmLBApage0"
+        src="/logo_concierge.png"
         max-height="50"
         max-width="50"
         contain
@@ -50,8 +52,8 @@
 export default {
   data() {
     return {
-      clipped: false,
-      drawer: false,
+      clipped: true,
+      drawer: true,
       fixed: false,
       items: [
         {
@@ -60,13 +62,18 @@ export default {
           to: '/',
         },
         {
+          icon: 'mdi-database',
+          title: 'MinIO buckets',
+          to: '/minio',
+        },
+        {
           icon: 'mdi-docker',
-          title: 'Single Container',
+          title: 'Single Deployments',
           to: '/singleContainer',
         },
         {
           icon: 'mdi-arrow-decision',
-          title: 'Distributed',
+          title: 'Distributed Deployments',
           to: '/distributed',
         },
         {

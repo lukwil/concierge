@@ -1,8 +1,7 @@
 <template>
   <v-layout column justify-center align-center>
-    <v-card>
+    <v-card width="100%">
       <v-card-title>
-        Distributed Deployments
         <v-spacer></v-spacer>
         <v-text-field
           v-model="search"

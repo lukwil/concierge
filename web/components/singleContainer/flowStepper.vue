@@ -175,7 +175,8 @@
     </v-stepper-content>
 
     <v-stepper-step :complete="e6 > 5" step="5"
-      >Persistence <small>Enable or disable persistence</small></v-stepper-step
+      >Persistence
+      <small>Enable or disable persistence (optional)</small></v-stepper-step
     >
     <v-stepper-content step="5">
       <v-form v-model="persistenceValid">
@@ -224,38 +225,21 @@
 
     <v-stepper-step :complete="e6 > 6" step="6"
       >Object storage
-      <small>Enable or disable object storage</small></v-stepper-step
+      <small>Add MinIO buckets (optional)</small></v-stepper-step
     >
     <v-stepper-content step="6">
-      <v-form v-model="objectStorageValid">
+      <v-form>
         <v-card-text>
           <v-container>
             <v-row>
-              <v-col cols="12" sm="12" md="12">
-                <v-switch
-                  v-model="editedItem.useObjectStorage"
-                  class="ma-1"
-                  label="Use object storage"
-                ></v-switch>
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col cols="12" sm="4" md="4">
-                <v-switch
-                  v-show="editedItem.useObjectStorage"
-                  v-model="editedItem.useExistingBucket"
-                  class="ma-1"
-                  label="Use existing bucket"
-                ></v-switch>
-              </v-col>
               <v-col cols="12" sm="8" md="8">
                 <v-select
-                  v-show="editedItem.useObjectStorage"
                   v-model="existingBucketSelected"
+                  chips
+                  multiple
                   :items="existingBuckets"
-                  :placeholder="existingBuckets[0]"
-                  :disabled="!editedItem.useExistingBucket"
-                  label="Existing bucket"
+                  placeholder="Choose MinIO bucket(s)..."
+                  label="Existing bucket(s)"
                 ></v-select>
               </v-col>
             </v-row>
@@ -263,9 +247,7 @@
         </v-card-text>
       </v-form>
       <v-btn text @click="e6 = 5">Back</v-btn>
-      <v-btn :disabled="!objectStorageValid" color="primary" @click="e6 = 7"
-        >Continue</v-btn
-      >
+      <v-btn color="primary" @click="e6 = 7">Continue</v-btn>
     </v-stepper-content>
 
     <v-stepper-step :complete="e6 > 7" step="7"
@@ -374,6 +356,24 @@ import { SingleContainerDto } from '@/plugins/conciergeApi'
 import Snackbar from '@/components/Snackbar.vue'
 import gql from 'graphql-tag'
 export default Vue.extend({
+  apollo: {
+    $subscribe: {
+      minioBuckets: {
+        query: gql`
+          subscription {
+            minio_bucket {
+              id
+              name
+            }
+          }
+        `,
+        result(data: any) {
+          console.log(data.data.minio_bucket)
+          this.existingBuckets = data.data.minio_bucket
+        },
+      },
+    },
+  },
   name: 'SingleContainerFlowStepper',
   components: {
     Snackbar,
@@ -394,11 +394,9 @@ export default Vue.extend({
         usePersistence: false,
         volumeSize: 512,
         volumeMountPath: '/',
-        useObjectStorage: false,
-        useExistingBucket: false,
       },
-      existingBuckets: [] as string[],
-      existingBucketSelected: '',
+      existingBuckets: [],
+      existingBucketSelected: [],
       deploymentNameValid: true,
       deploymentNameRules: [
         (v: string) => !!v || 'Deployment name is mandatory!',
@@ -436,7 +434,6 @@ export default Vue.extend({
       volumeMountPathRules: [
         (v: string) => !!v || 'Volume mount path is mandatory!',
       ],
-      objectStorageValid: true,
     }
   },
   computed: {
@@ -451,19 +448,10 @@ export default Vue.extend({
       },
     },
   },
-  created() {
-    this.initialize()
-  },
   mounted() {
     this.snackbar = this.$refs.snackbar as any
   },
   methods: {
-    initialize() {
-      this.existingBuckets = ['bucket1', 'bucket2', 'bucket3']
-      // this.$pricingApi()
-      //   .findAllPriceTypes()
-      //   .then((pt) => (this.priceTypes = pt.data))
-    },
     urlPrefixChange(event: boolean) {
       if (!event) {
         this.urlPrefixValid = true
