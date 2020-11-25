@@ -234,9 +234,11 @@
             <v-row>
               <v-col cols="12" sm="8" md="8">
                 <v-select
-                  v-model="existingBucketSelected"
+                  v-model="existingBucketsSelected"
+                  return-object
                   chips
                   multiple
+                  item-text="name"
                   :items="existingBuckets"
                   placeholder="Choose MinIO bucket(s)..."
                   label="Existing bucket(s)"
@@ -283,26 +285,6 @@
             </v-row>
             <v-row>
               <v-col cols="12" lg="4" md="4" sm="12">
-                <div class="font-weight-bold">Volume size:</div>
-                {{ editedItem.volumeSize }} MB
-              </v-col>
-              <v-col cols="12" lg="4" md="4" sm="12">
-                <div class="font-weight-bold">Volume mount path:</div>
-                {{ editedItem.volumeMountPath }}
-              </v-col>
-            </v-row>
-            <v-row v-if="editedItem.useObjectStorage">
-              <v-col cols="12" lg="4" md="4" sm="12">
-                <div class="font-weight-bold">Enable object storage:</div>
-                {{ editedItem.useObjectStorage }}
-              </v-col>
-              <v-col cols="12" lg="4" md="4" sm="12">
-                <div class="font-weight-bold">Use existing bucket:</div>
-                {{ existingBucketSelected }}
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col cols="12" lg="4" md="4" sm="12">
                 <div class="font-weight-bold">CPU:</div>
                 {{ editedItem.cpu }}m (equals
                 {{ editedItem.cpu / 1000 }} core(s))
@@ -326,14 +308,16 @@
                 {{ editedItem.volumeMountPath }}
               </v-col>
             </v-row>
-            <v-row v-if="editedItem.useObjectStorage">
+            <v-row v-if="existingBucketsSelected.length">
               <v-col cols="12" lg="4" md="4" sm="12">
-                <div class="font-weight-bold">Enable object storage:</div>
-                {{ editedItem.useObjectStorage }}
-              </v-col>
-              <v-col cols="12" lg="4" md="4" sm="12">
-                <div class="font-weight-bold">Use existing bucket:</div>
-                {{ existingBucketSelected }}
+                <div class="font-weight-bold">Use existing bucket(s):</div>
+                <v-chip
+                  v-for="bucket in existingBucketsSelected"
+                  :key="bucket.id"
+                  class="ma-2 secondary"
+                >
+                  {{ bucket.name }}
+                </v-chip>
               </v-col>
             </v-row>
           </v-card-text>
@@ -369,7 +353,7 @@ export default Vue.extend({
         `,
         result(data: any) {
           console.log(data.data.minio_bucket)
-          this.existingBuckets = data.data.minio_bucket
+          // this.existingBuckets = data.data.minio_bucket
         },
       },
     },
@@ -395,8 +379,12 @@ export default Vue.extend({
         volumeSize: 512,
         volumeMountPath: '/',
       },
-      existingBuckets: [],
-      existingBucketSelected: [],
+      // existingBuckets: [],
+      existingBuckets: [
+        { id: 3, name: 'balksadf' },
+        { id: 4, name: 'askdfjlka' },
+      ],
+      existingBucketsSelected: [],
       deploymentNameValid: true,
       deploymentNameRules: [
         (v: string) => !!v || 'Deployment name is mandatory!',
@@ -491,6 +479,16 @@ export default Vue.extend({
         if (this.editedItem.useContainerNameAsURLPrefix) {
           container.url_prefix = 'name_k8s'
         }
+      }
+
+      if (this.existingBucketsSelected.length) {
+        const bucketIds = this.existingBucketsSelected.map((e: any) => ({
+          minio_bucket_id: e.id,
+        }))
+        const deploymentBuckets = {
+          data: bucketIds,
+        }
+        container.deployment_minio_buckets = deploymentBuckets
       }
 
       this.$apollo
