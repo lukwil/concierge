@@ -58,18 +58,9 @@
       <small>Select your desired environment variables</small></v-stepper-step
     >
     <v-stepper-content step="3">
-      <v-form v-model="environmentVariablesValid">
+      <v-form>
         <v-card-text>
           <v-container>
-            <!-- <v-row>
-              <v-col cols="12" sm="12" md="12">
-                <v-switch
-                  v-model="editedItem.useEnvironmentVariables"
-                  class="ma-1"
-                  label="Use environmentVariables"
-                ></v-switch>
-              </v-col>
-            </v-row> -->
             <v-row>
               <v-col cols="12" sm="5" md="5">
                 <v-text-field
@@ -137,9 +128,7 @@
         </v-card-text>
       </v-form>
       <v-btn text @click="e6 = 2">Back</v-btn>
-      <v-btn :disabled="!containerImageValid" color="primary" @click="e6 = 4"
-        >Continue</v-btn
-      >
+      <v-btn color="primary" @click="e6 = 4">Continue</v-btn>
     </v-stepper-content>
 
     <v-stepper-step :complete="e6 > 4" step="4">
@@ -491,7 +480,6 @@ export default Vue.extend({
       editedItem: {
         deploymentName: '',
         containerImage: '',
-        useEnvironmentVariables: false,
         overrideURLPrefix: false,
         urlPrefix: '/',
         useContainerNameAsURLPrefix: true,

@@ -35,6 +35,13 @@ var singleDeploymentPayload struct {
 	} `graphql:"update_single_deployment_by_pk(pk_columns: $pkColumns, _set: $set)"`
 }
 
+var singleEnvironmentVariablesPayload struct {
+	SingleEnvironmentVariables []struct {
+		Name  graphql.String `graphql:"name"`
+		Value graphql.String `graphql:"value"`
+	} `graphql:"single_environment_variables(where: $where)"`
+}
+
 // Non-idiomatic Go naming, but needed by graphql library
 type single_deployment_pk_columns_input struct {
 	ID int `json:"id"`
@@ -44,6 +51,13 @@ type single_deployment_pk_columns_input struct {
 type single_deployment_set_input struct {
 	URLPrefix string `json:"url_prefix"`
 	NameK8s   string `json:"name_k8s"`
+}
+
+// Non-idiomatic Go naming, but needed by graphql library
+type single_environment_variables_bool_exp struct {
+	SingleDeploymentID struct {
+		EQ int `json:"_eq"`
+	} `json:"single_deployment_id"`
 }
 
 func createStatefulSet(p *hasura.SingleDeploymentPayload, namespace string) (statefulSetName string, urlPrefixName string, err error) {
@@ -127,18 +141,18 @@ func createStatefulSet(p *hasura.SingleDeploymentPayload, namespace string) (sta
 		},
 	}
 
+	container := &statefulSet.Spec.Template.Spec.Containers[0]
+
 	// create a volume if required by the user
 	if volumeID != 0 {
 		vol, err := getVolumeDetails(volumeID)
 		if err != nil {
-			errMsg := fmt.Sprintf("Cannot set volume in database: %s", err)
-			log.Println(errMsg)
+			log.Printf("Cannot set volume in database: %s", err)
 			return "", "", err
 		}
 
 		storageStr := fmt.Sprintf("%vMi", vol.Size)
 
-		container := &statefulSet.Spec.Template.Spec.Containers[0]
 		container.VolumeMounts = []corev1.VolumeMount{
 			{
 				Name:      name,
@@ -163,6 +177,31 @@ func createStatefulSet(p *hasura.SingleDeploymentPayload, namespace string) (sta
 				},
 			},
 		}
+	}
+
+	vars, err := getEnvVariables(id)
+	if err != nil {
+		log.Printf("Cannot retreive environment variables from database: %v", err)
+		return "", "", err
+	}
+	container.Env = vars
+
+	secrets, err := getMinIOSecrets(id)
+	if err != nil {
+		log.Printf("Cannot retreive secret names from database: %v", err)
+		return "", "", err
+	}
+	if len(secrets) > 0 {
+		container := &statefulSet.Spec.Template.Spec.Containers[0]
+		// var secretEnvVars []corev1.EnvVar
+		// for _, secret := range secrets {
+		// 	envVar := corev1.EnvVar{
+		// 		Name: secret.name,
+		// 	}
+		// }
+		// c := append(container.Env, corev1.EnvVar{}, corev1.EnvVar{})
+
+		container.Env = []corev1.EnvVar{}
 	}
 
 	log.Println("Creating StatefulSet...")
@@ -198,6 +237,49 @@ func getVolumeDetails(volumeID int) (*volume, error) {
 	return vol, nil
 }
 
+func getEnvVariables(id int) ([]corev1.EnvVar, error) {
+	client := hasura.Client()
+
+	eq := single_environment_variables_bool_exp{}
+	eq.SingleDeploymentID.EQ = id
+
+	variables := map[string]interface{}{
+		"where": eq,
+	}
+	if err := client.Query(context.TODO(), &singleEnvironmentVariablesPayload, variables); err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	corev1.EnvVar{}
+	var vars []corev1.EnvVar
+	for _, env := range singleEnvironmentVariablesPayload.SingleEnvironmentVariables {
+		vars = append(vars, corev1.EnvVar{Name: string(env.Name), Value: string(env.Value)})
+	}
+	return vars, nil
+}
+
+func getMinIOSecrets(id int) ([]interface{}, error) {
+	// client := hasura.Client()
+
+	// eq := distributed_environment_variables_bool_exp{}
+	// eq.DistributedDeploymentID.EQ = id
+
+	// variables := map[string]interface{}{
+	// 	"where": eq,
+	// }
+	// if err := client.Query(context.TODO(), &distributedEnvironmentVariablesPayload, variables); err != nil {
+	// 	log.Println(err)
+	// 	return nil, err
+	// }
+
+	var vars []interface{}
+	// for _, env := range distributedEnvironmentVariablesPayload.DistributedEnvironmentVariables {
+	// 	vars = append(vars, map[string]interface{}{"name": string(env.Name), "value": string(env.Value)})
+	// }
+	return vars, nil
+}
+
 func updateTable(id int, name, urlPrefix string) error {
 	client := hasura.Client()
 
@@ -212,13 +294,6 @@ func updateTable(id int, name, urlPrefix string) error {
 		"pkColumns": pkColumns,
 		"set":       set,
 	}
-	// variables := map[string]interface{}{
-	// 	"pkColumns": pkColumns,
-	// 	"set": map[string]interface{}{
-	// 		"name_k8s":   name,
-	// 		"url_prefix": urlPrefix,
-	// 	},
-	// }
 
 	if err := client.Mutate(context.TODO(), &singleDeploymentPayload, variables); err != nil {
 		return err
