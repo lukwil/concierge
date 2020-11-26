@@ -488,7 +488,7 @@ export default Vue.extend({
         const deploymentBuckets = {
           data: bucketIds,
         }
-        container.deployment_minio_buckets = deploymentBuckets
+        container.single_deployment_minio_buckets = deploymentBuckets
       }
 
       this.$apollo

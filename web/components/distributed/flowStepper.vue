@@ -321,38 +321,23 @@
 
     <v-stepper-step :complete="e6 > 6" step="6"
       >Object storage
-      <small>Enable or disable object storage</small></v-stepper-step
+      <small>Add MinIO buckets (optional)</small></v-stepper-step
     >
     <v-stepper-content step="6">
-      <v-form v-model="objectStorageValid">
+      <v-form>
         <v-card-text>
           <v-container>
             <v-row>
-              <v-col cols="12" sm="12" md="12">
-                <v-switch
-                  v-model="editedItem.useObjectStorage"
-                  class="ma-1"
-                  label="Use object storage"
-                ></v-switch>
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col cols="12" sm="4" md="4">
-                <v-switch
-                  v-show="editedItem.useObjectStorage"
-                  v-model="editedItem.useExistingBucket"
-                  class="ma-1"
-                  label="Use existing bucket"
-                ></v-switch>
-              </v-col>
               <v-col cols="12" sm="8" md="8">
                 <v-select
-                  v-show="editedItem.useObjectStorage"
-                  v-model="existingBucketSelected"
+                  v-model="existingBucketsSelected"
+                  return-object
+                  chips
+                  multiple
+                  item-text="name"
                   :items="existingBuckets"
-                  :placeholder="existingBuckets[0]"
-                  :disabled="!editedItem.useExistingBucket"
-                  label="Existing bucket"
+                  placeholder="Choose MinIO bucket(s)..."
+                  label="Existing bucket(s)"
                 ></v-select>
               </v-col>
             </v-row>
@@ -360,9 +345,7 @@
         </v-card-text>
       </v-form>
       <v-btn text @click="e6 = 5">Back</v-btn>
-      <v-btn :disabled="!objectStorageValid" color="primary" @click="e6 = 7"
-        >Continue</v-btn
-      >
+      <v-btn color="primary" @click="e6 = 7">Continue</v-btn>
     </v-stepper-content>
 
     <v-stepper-step :complete="e6 > 7" step="7"
@@ -397,18 +380,7 @@
               </v-col>
             </v-row>
 
-            <v-row v-if="editedItem.useObjectStorage">
-              <v-col cols="12" lg="4" md="4" sm="12">
-                <div class="font-weight-bold">Enable object storage:</div>
-                {{ editedItem.useObjectStorage }}
-              </v-col>
-              <v-col cols="12" lg="4" md="4" sm="12">
-                <div class="font-weight-bold">Use existing bucket:</div>
-                {{ existingBucketSelected }}
-              </v-col>
-            </v-row>
-
-            <v-row v-if="environmentVariables.length > 0">
+            <v-row v-if="environmentVariables.length">
               <v-col cols="12" lg="12" md="12" sm="12">
                 <div class="font-weight-bold">Environment variables:</div>
                 <v-chip
@@ -418,6 +390,19 @@
                   color="primary"
                 >
                   {{ variable.name }}: {{ variable.value }}
+                </v-chip>
+              </v-col>
+            </v-row>
+
+            <v-row v-if="existingBucketsSelected.length">
+              <v-col cols="12" lg="4" md="4" sm="12">
+                <div class="font-weight-bold">Use existing bucket(s):</div>
+                <v-chip
+                  v-for="bucket in existingBucketsSelected"
+                  :key="bucket.id"
+                  class="ma-2 secondary"
+                >
+                  {{ bucket.name }}
                 </v-chip>
               </v-col>
             </v-row>
@@ -462,7 +447,7 @@
       </v-form>
       <br />
       <v-btn text @click="e6 = 6">Back</v-btn>
-      <v-btn color="success" @click="createSingleDeployment()"
+      <v-btn color="success" @click="createDistributedDeployment()"
         >Create new deployment</v-btn
       >
     </v-stepper-content>
@@ -477,6 +462,24 @@ import { SingleContainerDto } from '@/plugins/conciergeApi'
 import Snackbar from '@/components/Snackbar.vue'
 import gql from 'graphql-tag'
 export default Vue.extend({
+  apollo: {
+    $subscribe: {
+      minioBuckets: {
+        query: gql`
+          subscription {
+            minio_bucket {
+              id
+              name
+            }
+          }
+        `,
+        result(data: any) {
+          console.log(data.data.minio_bucket)
+          // this.existingBuckets = data.data.minio_bucket
+        },
+      },
+    },
+  },
   name: 'DistributedFlowStepper',
   components: {
     Snackbar,
@@ -506,8 +509,11 @@ export default Vue.extend({
         value: '',
       },
       environmentVariables: [] as { name: string; value: string }[],
-      existingBuckets: [] as string[],
-      existingBucketSelected: '',
+      existingBuckets: [
+        { id: 3, name: 'balksadf' },
+        { id: 4, name: 'askdfjlka' },
+      ],
+      existingBucketsSelected: [],
       deploymentNameValid: true,
       deploymentNameRules: [
         (v: string) => !!v || 'Deployment name is mandatory!',
@@ -553,7 +559,6 @@ export default Vue.extend({
       volumeMountPathRules: [
         (v: string) => !!v || 'Volume mount path is mandatory!',
       ],
-      objectStorageValid: true,
     }
   },
   computed: {
@@ -568,19 +573,10 @@ export default Vue.extend({
       },
     },
   },
-  created() {
-    this.initialize()
-  },
   mounted() {
     this.snackbar = this.$refs.snackbar as any
   },
   methods: {
-    initialize() {
-      this.existingBuckets = ['bucket1', 'bucket2', 'bucket3']
-      // this.$pricingApi()
-      //   .findAllPriceTypes()
-      //   .then((pt) => (this.priceTypes = pt.data))
-    },
     urlPrefixChange(event: boolean) {
       if (!event) {
         this.urlPrefixValid = true
@@ -602,7 +598,7 @@ export default Vue.extend({
     deleteEnvironmentVariable(index: number) {
       this.environmentVariables.splice(index, 1)
     },
-    createSingleDeployment() {
+    createDistributedDeployment() {
       const deployment: any = {
         name: this.editedItem.deploymentName,
         container_image: this.editedItem.containerImage,
@@ -621,11 +617,21 @@ export default Vue.extend({
         }
       }
 
-      if (this.environmentVariables.length > 0) {
+      if (this.environmentVariables.length) {
         const distributedEnvironmentVariables = {
           data: this.environmentVariables,
         }
         deployment.distributed_environment_variables = distributedEnvironmentVariables
+      }
+
+      if (this.existingBucketsSelected.length) {
+        const bucketIds = this.existingBucketsSelected.map((e: any) => ({
+          minio_bucket_id: e.id,
+        }))
+        const deploymentBuckets = {
+          data: bucketIds,
+        }
+        deployment.distributed_deployment_minio_buckets = deploymentBuckets
       }
 
       this.$apollo
