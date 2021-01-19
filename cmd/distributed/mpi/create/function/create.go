@@ -29,6 +29,12 @@ var distributedEnvironmentVariablesPayload struct {
 	} `graphql:"distributed_environment_variables(where: $where)"`
 }
 
+var distributedDeploymentMinioBucketsPayload struct {
+	DistributedDeploymentMinioBuckets []struct {
+		Name graphql.String `graphql:"name"`
+	} `graphql:"distributed_deployment_minio_buckets(where: $where)"`
+}
+
 // Non-idiomatic Go naming, but needed by graphql library
 type distributed_deployment_pk_columns_input struct {
 	ID int `json:"id"`
@@ -169,11 +175,24 @@ func createMPIJob(p *hasura.DistributedDeploymentPayload, namespace string) (str
 	}
 
 	vars, err := getEnvVariables(id)
+	if err != nil {
+		log.Printf("environment variables could not be retreived: %v", err)
+		return "", "", err
+	}
+
+	buckets, err := getMinIOBuckets(id)
+	if err != nil {
+		log.Printf("Cannot retreive secret names from database: %v", err)
+		return "", "", err
+	}
+
 	launcherVars := vars
 	launcherVars = append(launcherVars, map[string]interface{}{"name": "URL_PREFIX", "value": urlPrefix})
 	launcherVars = append(launcherVars, map[string]interface{}{"name": "IS_LAUNCHER", "value": "1"})
+	launcherVars = append(launcherVars, buckets...)
 	workerVars := vars
 	workerVars = append(workerVars, map[string]interface{}{"name": "IS_LAUNCHER", "value": "0"})
+	workerVars = append(workerVars, buckets...)
 
 	launcherContainers, found, err := unstructured.NestedSlice(mpi.Object, "spec", "mpiReplicaSpecs", "Launcher", "template", "spec", "containers")
 	if err != nil || !found || launcherContainers == nil {
@@ -240,6 +259,52 @@ func getEnvVariables(id int) ([]interface{}, error) {
 		vars = append(vars, map[string]interface{}{"name": string(env.Name), "value": string(env.Value)})
 	}
 	return vars, nil
+}
+
+func getMinIOBuckets(id int) ([]interface{}, error) {
+
+	client := hasura.Client()
+	// TODO: Change GraphQL Query!!
+	eq := distributed_environment_variables_bool_exp{}
+	eq.DistributedDeploymentID.EQ = id
+
+	variables := map[string]interface{}{
+		"where": eq,
+	}
+	if err := client.Query(context.TODO(), &distributedDeploymentMinioBucketsPayload, variables); err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	var envVars []interface{}
+	for _, bucket := range distributedDeploymentMinioBucketsPayload.DistributedDeploymentMinioBuckets {
+		accessKey := map[string]interface{}{
+			"name": fmt.Sprintf("%v_access_key", string(bucket.Name)),
+			"valueFrom": map[string]interface{}{
+				"secretKeyRef": map[string]interface{}{
+					"localObjectReference": map[string]interface{}{
+						"name": string(bucket.Name),
+					},
+					"key": "access_key",
+				},
+			},
+		}
+
+		secret := map[string]interface{}{
+			"name": fmt.Sprintf("%v_secret", string(bucket.Name)),
+			"valueFrom": map[string]interface{}{
+				"secretKeyRef": map[string]interface{}{
+					"localObjectReference": map[string]interface{}{
+						"name": string(bucket.Name),
+					},
+					"key": "secret",
+				},
+			},
+		}
+
+		envVars = append(envVars, accessKey, secret)
+	}
+	return envVars, nil
 }
 
 func updateTable(id int, name, urlPrefix string) error {

@@ -53,7 +53,85 @@
       >
     </v-stepper-content>
 
-    <v-stepper-step :complete="e6 > 3" step="3">
+    <v-stepper-step :complete="e6 > 3" step="3"
+      >Environment variables
+      <small>Select your desired environment variables</small></v-stepper-step
+    >
+    <v-stepper-content step="3">
+      <v-form>
+        <v-card-text>
+          <v-container>
+            <v-row>
+              <v-col cols="12" sm="5" md="5">
+                <v-text-field
+                  v-model="environmentVariableNew.name"
+                  label="Name"
+                  type="text"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="5" md="5">
+                <v-text-field
+                  v-model="environmentVariableNew.value"
+                  label="Value"
+                  type="text"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="2" md="2">
+                <v-btn
+                  fab
+                  small
+                  color="primary"
+                  :disabled="
+                    !(
+                      !!environmentVariableNew.name.trim() &&
+                      !!environmentVariableNew.value.trim()
+                    )
+                  "
+                >
+                  <v-icon dark medium @click="addEnvironmentVariable()"
+                    >mdi-playlist-plus</v-icon
+                  >
+                </v-btn>
+              </v-col>
+            </v-row>
+
+            <v-divider></v-divider>
+            <br />
+
+            <v-row
+              v-for="(variable, index) in environmentVariables"
+              :key="index"
+            >
+              <v-col cols="12" sm="5" md="5">
+                <v-text-field
+                  v-model="variable.name"
+                  label="Name"
+                  type="text"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="5" md="5">
+                <v-text-field
+                  v-model="variable.value"
+                  label="Value"
+                  type="text"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="2" md="2">
+                <v-btn fab small color="error">
+                  <v-icon dark medium @click="deleteEnvironmentVariable(index)"
+                    >mdi-delete</v-icon
+                  >
+                </v-btn>
+              </v-col>
+            </v-row>
+          </v-container>
+        </v-card-text>
+      </v-form>
+      <v-btn text @click="e6 = 2">Back</v-btn>
+      <v-btn color="primary" @click="e6 = 4">Continue</v-btn>
+    </v-stepper-content>
+
+    <v-stepper-step :complete="e6 > 4" step="4">
       <v-tooltip right>
         <template v-slot:activator="{ on, attrs }">
           <div>
@@ -61,7 +139,7 @@
             <v-icon
               v-bind="attrs"
               small
-              :color="e6 == 3 ? 'primary' : 'grey'"
+              :color="e6 == 4 ? 'primary' : 'grey'"
               v-on="on"
               >mdi-information</v-icon
             >
@@ -83,7 +161,7 @@
 
       <small>Select URL prefix</small></v-stepper-step
     >
-    <v-stepper-content step="3">
+    <v-stepper-content step="4">
       <v-form v-model="urlPrefixValid">
         <v-card-text>
           <v-container>
@@ -122,16 +200,16 @@
           </v-container>
         </v-card-text>
       </v-form>
-      <v-btn text @click="e6 = 2">Back</v-btn>
-      <v-btn :disabled="!urlPrefixValid" color="primary" @click="e6 = 4"
+      <v-btn text @click="e6 = 3">Back</v-btn>
+      <v-btn :disabled="!urlPrefixValid" color="primary" @click="e6 = 5"
         >Continue</v-btn
       >
     </v-stepper-content>
 
-    <v-stepper-step :complete="e6 > 4" step="4"
+    <v-stepper-step :complete="e6 > 5" step="5"
       >Resources <small>Select your desired resources</small></v-stepper-step
     >
-    <v-stepper-content step="4">
+    <v-stepper-content step="5">
       <v-form v-model="resourcesValid">
         <v-card-text>
           <v-container>
@@ -168,17 +246,17 @@
           </v-container>
         </v-card-text>
       </v-form>
-      <v-btn text @click="e6 = 3">Back</v-btn>
-      <v-btn :disabled="!resourcesValid" color="primary" @click="e6 = 5"
+      <v-btn text @click="e6 = 4">Back</v-btn>
+      <v-btn :disabled="!resourcesValid" color="primary" @click="e6 = 6"
         >Continue</v-btn
       >
     </v-stepper-content>
 
-    <v-stepper-step :complete="e6 > 5" step="5"
+    <v-stepper-step :complete="e6 > 6" step="6"
       >Persistence
       <small>Enable or disable persistence (optional)</small></v-stepper-step
     >
-    <v-stepper-content step="5">
+    <v-stepper-content step="6">
       <v-form v-model="persistenceValid">
         <v-card-text>
           <v-container>
@@ -217,17 +295,17 @@
           </v-container>
         </v-card-text>
       </v-form>
-      <v-btn text @click="e6 = 4">Back</v-btn>
-      <v-btn :disabled="!persistenceValid" color="primary" @click="e6 = 6"
+      <v-btn text @click="e6 = 5">Back</v-btn>
+      <v-btn :disabled="!persistenceValid" color="primary" @click="e6 = 7"
         >Continue</v-btn
       >
     </v-stepper-content>
 
-    <v-stepper-step :complete="e6 > 6" step="6"
+    <v-stepper-step :complete="e6 > 7" step="7"
       >Object storage
       <small>Add MinIO buckets (optional)</small></v-stepper-step
     >
-    <v-stepper-content step="6">
+    <v-stepper-content step="7">
       <v-form>
         <v-card-text>
           <v-container>
@@ -248,14 +326,14 @@
           </v-container>
         </v-card-text>
       </v-form>
-      <v-btn text @click="e6 = 5">Back</v-btn>
-      <v-btn color="primary" @click="e6 = 7">Continue</v-btn>
+      <v-btn text @click="e6 = 6">Back</v-btn>
+      <v-btn color="primary" @click="e6 = 8">Continue</v-btn>
     </v-stepper-content>
 
-    <v-stepper-step :complete="e6 > 7" step="7"
+    <v-stepper-step :complete="e6 > 8" step="8"
       >Overview <small>Verify your entered data</small></v-stepper-step
     >
-    <v-stepper-content step="7">
+    <v-stepper-content step="8">
       <v-form>
         <v-card outlined>
           <v-card-title class="primary white--text">{{
@@ -283,6 +361,21 @@
                 </div>
               </v-col>
             </v-row>
+
+            <v-row v-if="environmentVariables.length">
+              <v-col cols="12" lg="12" md="12" sm="12">
+                <div class="font-weight-bold">Environment variables:</div>
+                <v-chip
+                  v-for="(variable, index) in environmentVariables"
+                  :key="index"
+                  class="ma-2"
+                  color="primary"
+                >
+                  {{ variable.name }}: {{ variable.value }}
+                </v-chip>
+              </v-col>
+            </v-row>
+
             <v-row>
               <v-col cols="12" lg="4" md="4" sm="12">
                 <div class="font-weight-bold">CPU:</div>
@@ -324,7 +417,7 @@
         </v-card>
       </v-form>
       <br />
-      <v-btn text @click="e6 = 6">Back</v-btn>
+      <v-btn text @click="e6 = 7">Back</v-btn>
       <v-btn color="success" @click="createSingleDeployment()"
         >Create new deployment</v-btn
       >
@@ -379,6 +472,11 @@ export default Vue.extend({
         volumeSize: 512,
         volumeMountPath: '/',
       },
+      environmentVariableNew: {
+        name: '',
+        value: '',
+      },
+      environmentVariables: [] as { name: string; value: string }[],
       // existingBuckets: [],
       existingBuckets: [
         { id: 3, name: 'balksadf' },
@@ -447,6 +545,20 @@ export default Vue.extend({
         this.editedItem.urlPrefix = '/'
       }
     },
+    addEnvironmentVariable() {
+      const variable: { name: string; value: string } = {
+        name: this.environmentVariableNew.name,
+        value: this.environmentVariableNew.value,
+      }
+
+      this.environmentVariables.push(variable)
+
+      this.environmentVariableNew.name = ''
+      this.environmentVariableNew.value = ''
+    },
+    deleteEnvironmentVariable(index: number) {
+      this.environmentVariables.splice(index, 1)
+    },
     usePersistenceChange(event: boolean) {
       if (!event) {
         this.persistenceValid = true
@@ -481,6 +593,13 @@ export default Vue.extend({
         }
       }
 
+      if (this.environmentVariables.length) {
+        const singleEnvironmentVariables = {
+          data: this.environmentVariables,
+        }
+        container.single_environment_variables = singleEnvironmentVariables
+      }
+
       if (this.existingBucketsSelected.length) {
         const bucketIds = this.existingBucketsSelected.map((e: any) => ({
           minio_bucket_id: e.id,
@@ -488,7 +607,7 @@ export default Vue.extend({
         const deploymentBuckets = {
           data: bucketIds,
         }
-        container.deployment_minio_buckets = deploymentBuckets
+        container.single_deployment_minio_buckets = deploymentBuckets
       }
 
       this.$apollo
