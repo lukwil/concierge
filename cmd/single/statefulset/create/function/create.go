@@ -42,6 +42,12 @@ var singleEnvironmentVariablesPayload struct {
 	} `graphql:"single_environment_variables(where: $where)"`
 }
 
+var singleDeploymentMinioBucketsPayload struct {
+	SingleDeploymentMinioBuckets []struct {
+		Name graphql.String `graphql:"name"`
+	} `graphql:"single_deployment_minio_buckets(where: $where)"`
+}
+
 // Non-idiomatic Go naming, but needed by graphql library
 type single_deployment_pk_columns_input struct {
 	ID int `json:"id"`
@@ -184,25 +190,14 @@ func createStatefulSet(p *hasura.SingleDeploymentPayload, namespace string) (sta
 		log.Printf("Cannot retreive environment variables from database: %v", err)
 		return "", "", err
 	}
-	container.Env = vars
+	container.Env = append(container.Env, vars...)
 
-	secrets, err := getMinIOSecrets(id)
+	buckets, err := getMinIOBuckets(id)
 	if err != nil {
 		log.Printf("Cannot retreive secret names from database: %v", err)
 		return "", "", err
 	}
-	if len(secrets) > 0 {
-		container := &statefulSet.Spec.Template.Spec.Containers[0]
-		// var secretEnvVars []corev1.EnvVar
-		// for _, secret := range secrets {
-		// 	envVar := corev1.EnvVar{
-		// 		Name: secret.name,
-		// 	}
-		// }
-		// c := append(container.Env, corev1.EnvVar{}, corev1.EnvVar{})
-
-		container.Env = []corev1.EnvVar{}
-	}
+	container.Env = append(container.Env, buckets...)
 
 	log.Println("Creating StatefulSet...")
 	if _, err := statefulSetClient.Create(context.TODO(), statefulSet, metav1.CreateOptions{}); err != nil {
@@ -251,7 +246,6 @@ func getEnvVariables(id int) ([]corev1.EnvVar, error) {
 		return nil, err
 	}
 
-	corev1.EnvVar{}
 	var vars []corev1.EnvVar
 	for _, env := range singleEnvironmentVariablesPayload.SingleEnvironmentVariables {
 		vars = append(vars, corev1.EnvVar{Name: string(env.Name), Value: string(env.Value)})
@@ -259,25 +253,50 @@ func getEnvVariables(id int) ([]corev1.EnvVar, error) {
 	return vars, nil
 }
 
-func getMinIOSecrets(id int) ([]interface{}, error) {
-	// client := hasura.Client()
+func getMinIOBuckets(id int) ([]corev1.EnvVar, error) {
 
-	// eq := distributed_environment_variables_bool_exp{}
-	// eq.DistributedDeploymentID.EQ = id
+	client := hasura.Client()
+	// TODO: Change GraphQL Query!!
+	eq := single_environment_variables_bool_exp{}
+	eq.SingleDeploymentID.EQ = id
 
-	// variables := map[string]interface{}{
-	// 	"where": eq,
-	// }
-	// if err := client.Query(context.TODO(), &distributedEnvironmentVariablesPayload, variables); err != nil {
-	// 	log.Println(err)
-	// 	return nil, err
-	// }
+	variables := map[string]interface{}{
+		"where": eq,
+	}
+	if err := client.Query(context.TODO(), &singleDeploymentMinioBucketsPayload, variables); err != nil {
+		log.Println(err)
+		return nil, err
+	}
 
-	var vars []interface{}
-	// for _, env := range distributedEnvironmentVariablesPayload.DistributedEnvironmentVariables {
-	// 	vars = append(vars, map[string]interface{}{"name": string(env.Name), "value": string(env.Value)})
-	// }
-	return vars, nil
+	var envVars []corev1.EnvVar
+	for _, bucket := range singleDeploymentMinioBucketsPayload.SingleDeploymentMinioBuckets {
+		accessKey := corev1.EnvVar{
+			Name: fmt.Sprintf("%v_access_key", string(bucket.Name)),
+			ValueFrom: &corev1.EnvVarSource{
+				SecretKeyRef: &corev1.SecretKeySelector{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: string(bucket.Name),
+					},
+					Key: "access_key",
+				},
+			},
+		}
+
+		secret := corev1.EnvVar{
+			Name: fmt.Sprintf("%v_secret", string(bucket.Name)),
+			ValueFrom: &corev1.EnvVarSource{
+				SecretKeyRef: &corev1.SecretKeySelector{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: string(bucket.Name),
+					},
+					Key: "secret",
+				},
+			},
+		}
+
+		envVars = append(envVars, accessKey, secret)
+	}
+	return envVars, nil
 }
 
 func updateTable(id int, name, urlPrefix string) error {
