@@ -28,6 +28,7 @@
       "@nuxt/types",
       "@nuxt/vue-app",
       "@nuxtjs/axios",
+      "@nuxtjs/auth-next",
       "@nuxtjs/apollo",
       "vue-apollo",
       "vuetify"

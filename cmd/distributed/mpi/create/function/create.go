@@ -40,7 +40,7 @@ type distributed_deployment_set_input struct {
 	NameK8s   string `json:"name_k8s"`
 }
 
-// Non-idiomatic Go naming, but needed by graphql library
+// Non-idiomatic Go naming, but needed by graphql librarycd
 type distributed_environment_variables_bool_exp struct {
 	DistributedDeploymentID struct {
 		EQ int `json:"_eq"`
@@ -76,7 +76,7 @@ func createMPIJob(p *hasura.DistributedDeploymentPayload, namespace string) (str
 
 	mpiResource := schema.GroupVersionResource{Group: "kubeflow.org", Version: "v1alpha2", Resource: "mpijobs"}
 
-	slotsPerWorker := int32(1)
+	slotsPerWorker := int32(workerGPU)
 	cleanPodPolicy := "Running"
 	launcherReplicas := int32(1)
 	launcherCPUStr := fmt.Sprintf("%vm", launcherCPU)
