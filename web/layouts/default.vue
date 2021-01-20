@@ -39,6 +39,42 @@
 
       <v-toolbar-title id="toolbar-title" v-text="title" />
       <v-spacer />
+
+      <v-menu v-if="$store.state.auth.loggedIn" offset-y>
+        <template v-slot:activator="{ on }">
+          <!-- <v-btn text slot="activator"> -->
+          <v-btn text v-on="on">
+            <span>Menu</span>
+            <v-icon right>expand_more</v-icon>
+          </v-btn>
+        </template>
+        <v-card class="mx-auto" max-width="344" outlined>
+          <v-list-item three-line>
+            <v-list-item-content>
+              <div class="overline mb-4">
+                {{ this.$auth.user.preferred_username }}
+                {{ $auth.strategy.token.get() }}
+              </div>
+              <v-list-item-title class="headline mb-1">
+                {{ this.$auth.user.given_name }}
+                {{ this.$auth.user.family_name }}
+              </v-list-item-title>
+              <v-list-item-subtitle
+                >Greyhound divisely hello coldly
+                fonwderfully</v-list-item-subtitle
+              >
+            </v-list-item-content>
+
+            <v-avatar color="primary">
+              <v-icon dark> mdi-account-circle </v-icon>
+            </v-avatar>
+          </v-list-item>
+
+          <v-card-actions>
+            <v-btn color="primary" @click="logout()">Logout</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-menu>
     </v-app-bar>
     <v-main>
       <v-container>
@@ -87,6 +123,11 @@ export default {
       rightDrawer: false,
       title: 'concierge',
     }
+  },
+  methods: {
+    logout() {
+      this.$auth.logout('keycloak')
+    },
   },
 }
 </script>

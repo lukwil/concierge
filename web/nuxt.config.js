@@ -66,6 +66,9 @@ export default {
    ** Nuxt.js modules
    */
   modules: ['@nuxtjs/axios', '@nuxtjs/apollo', '@nuxtjs/auth-next'],
+  router: {
+    middleware: ['auth'],
+  },
   axios: {
     baseURL: 'http://localhost:8888',
     proxyHeaders: false,
@@ -83,14 +86,21 @@ export default {
   },
   auth: {
     strategies: {
+      local: false,
       keycloak: {
         scheme: 'oauth2',
         endpoints: {
-          authorization: `${process.env.KEYCLOAK_REMOTE_HOST}/auth/realms/${process.env.KEYCLOAK_REALM}/protocol/openid-connect/auth`,
-          token: `${process.env.KEYCLOAK_REMOTE_HOST}/auth/realms/${process.env.KEYCLOAK_REALM}/protocol/openid-connect/token`,
+          authorization: `http://localhost:8091/auth/realms/concierge/protocol/openid-connect/auth`,
+          token: `http://localhost:8091/auth/realms/concierge/protocol/openid-connect/token`,
           logout:
-            `${process.env.KEYCLOAK_REMOTE_HOST}/auth/realms/${process.env.KEYCLOAK_REALM}/protocol/openid-connect/logout?redirect_uri=` +
-            encodeURIComponent(String(process.env.REMOTE_API)),
+            `http://localhost:8091/auth/realms/concierge/protocol/openid-connect/logout?redirect_uri=` +
+            encodeURIComponent('http://localhost:3000/'),
+          userInfo:
+            'http://localhost:8091/auth/realms/concierge/protocol/openid-connect/userinfo',
+        },
+        user: {
+          property: false, // <--- Default "user"
+          autoFetch: true,
         },
         token: {
           property: 'access_token',
@@ -103,8 +113,10 @@ export default {
           maxAge: 60 * 60 * 24 * 30, // Can be dynamic ?
         },
         responseType: 'code',
+        token_type: 'Bearer',
+        token_key: 'access_token',
         grantType: 'authorization_code',
-        clientId: process.env.KEYCLOAK_CLIENT_ID,
+        clientId: 'concierge-vue',
         scope: ['openid', 'profile', 'email'],
         codeChallengeMethod: 'S256',
       },

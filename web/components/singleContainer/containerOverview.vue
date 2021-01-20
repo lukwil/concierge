@@ -239,6 +239,7 @@ export default Vue.extend({
       search: '',
       headers: [
         { text: 'Name', value: 'name' },
+        { text: 'User', value: 'user' },
         { text: 'Container image', value: 'container_image' },
         { text: 'CPU', value: 'cpu' },
         { text: 'RAM (MB)', value: 'ram' },
@@ -263,7 +264,76 @@ export default Vue.extend({
   computed: {},
   watch: {},
   mounted() {
-    this.snackbar = this.$refs.snackbar as any
+    const depl = []
+    const d1 = {
+      name: 'Experiment 1',
+      user: 'Lukas Willburger',
+      cpu: 2000,
+      ram: 4096,
+      gpu: 1,
+      status: {
+        name: 'started',
+      },
+      volume: { size: 512 },
+      container_image: 'lukwil/jupyter-gpu',
+    }
+    depl.push(d1)
+    const d2 = {
+      name: 'Wichtige Berechnung',
+      user: 'Lukas Willburger',
+      cpu: 4000,
+      ram: 8192,
+      gpu: 2,
+      status: {
+        name: 'starting',
+      },
+      volume: { size: 10240 },
+      container_image: 'lukwil/jupyter-gpu',
+    }
+    depl.push(d2)
+    const d3 = {
+      name: 'CPU-Berechnung',
+      user: 'Max Mustermann',
+      cpu: 4000,
+      ram: 2048,
+      // gpu: 1,
+      status: {
+        name: 'stopping',
+      },
+      // volume: { size: 512 },
+      container_image: 'lukwil/jupyter-cpu',
+    }
+    depl.push(d3)
+    const d4 = {
+      name: 'Experiment 2',
+      user: 'Lukas Willburger',
+      cpu: 1000,
+      ram: 4096,
+      gpu: 1,
+      status: {
+        name: 'stopped',
+      },
+      // volume: { size: 512 },
+      container_image: 'lukwil/jupyter-gpu',
+    }
+    depl.push(d4)
+    const d5 = {
+      name: 'Fehlerhaftes Experiment',
+      user: 'Max Mustermann',
+      cpu: 1000,
+      ram: 4096,
+      gpu: 1,
+      // status: {
+      //   name: 'stopped',
+      // },
+      // volume: { size: 512 },
+      container_image: 'lukwil/jupyter-gpu',
+    }
+    depl.push(d5)
+    this.deployments = depl
+
+    // this.snackbar = this.$refs.snackbar as any
+
     // const q = this.$apollo.queries.hello
     console.log(this.tab)
     // window.setInterval(() => {

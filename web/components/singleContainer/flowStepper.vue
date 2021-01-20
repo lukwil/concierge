@@ -1,7 +1,33 @@
 <template>
   <v-stepper v-model="e6" vertical>
     <v-stepper-step :complete="e6 > 1" step="1">
-      Deployment name <small>Select your desired deployment name</small>
+      <v-tooltip right>
+        <template v-slot:activator="{ on, attrs }">
+          <div>
+            Deployment name
+            <v-icon
+              v-bind="attrs"
+              small
+              :color="e6 == 4 ? 'primary' : 'grey'"
+              v-on="on"
+              >mdi-information</v-icon
+            >
+          </div>
+        </template>
+        <span
+          >You can later access your application via a subpath in the URL.
+          <br />
+          To get this to work, some applications like e.g. Jupyter Notebooks
+          need a given base URL. <br />
+          Thus you have the opportunity to set a URL prefix according to the
+          application's needs. <br />
+          The final URL prefix will be given as an environment variable
+          <span class="secondary--text">URL_PREFIX</span>
+
+          to use with your application.</span
+        >
+      </v-tooltip>
+      <small>Select your desired deployment name</small>
     </v-stepper-step>
     <v-stepper-content step="1">
       <v-form v-model="deploymentNameValid">
@@ -26,8 +52,33 @@
       >
     </v-stepper-content>
 
-    <v-stepper-step :complete="e6 > 2" step="2"
-      >Container image
+    <v-stepper-step :complete="e6 > 2" step="2">
+      <v-tooltip right>
+        <template v-slot:activator="{ on, attrs }">
+          <div>
+            Container image
+            <v-icon
+              v-bind="attrs"
+              small
+              :color="e6 == 4 ? 'primary' : 'grey'"
+              v-on="on"
+              >mdi-information</v-icon
+            >
+          </div>
+        </template>
+        <span
+          >You can later access your application via a subpath in the URL.
+          <br />
+          To get this to work, some applications like e.g. Jupyter Notebooks
+          need a given base URL. <br />
+          Thus you have the opportunity to set a URL prefix according to the
+          application's needs. <br />
+          The final URL prefix will be given as an environment variable
+          <span class="secondary--text">URL_PREFIX</span>
+
+          to use with your application.</span
+        >
+      </v-tooltip>
       <small>Select your desired container image</small></v-stepper-step
     >
     <v-stepper-content step="2">
@@ -53,8 +104,33 @@
       >
     </v-stepper-content>
 
-    <v-stepper-step :complete="e6 > 3" step="3"
-      >Environment variables
+    <v-stepper-step :complete="e6 > 3" step="3">
+      <v-tooltip right>
+        <template v-slot:activator="{ on, attrs }">
+          <div>
+            Environment variables
+            <v-icon
+              v-bind="attrs"
+              small
+              :color="e6 == 4 ? 'primary' : 'grey'"
+              v-on="on"
+              >mdi-information</v-icon
+            >
+          </div>
+        </template>
+        <span
+          >You can later access your application via a subpath in the URL.
+          <br />
+          To get this to work, some applications like e.g. Jupyter Notebooks
+          need a given base URL. <br />
+          Thus you have the opportunity to set a URL prefix according to the
+          application's needs. <br />
+          The final URL prefix will be given as an environment variable
+          <span class="secondary--text">URL_PREFIX</span>
+
+          to use with your application.</span
+        >
+      </v-tooltip>
       <small>Select your desired environment variables</small></v-stepper-step
     >
     <v-stepper-content step="3">
@@ -206,8 +282,34 @@
       >
     </v-stepper-content>
 
-    <v-stepper-step :complete="e6 > 5" step="5"
-      >Resources <small>Select your desired resources</small></v-stepper-step
+    <v-stepper-step :complete="e6 > 5" step="5">
+      <v-tooltip right>
+        <template v-slot:activator="{ on, attrs }">
+          <div>
+            Resources
+            <v-icon
+              v-bind="attrs"
+              small
+              :color="e6 == 5 ? 'primary' : 'grey'"
+              v-on="on"
+              >mdi-information</v-icon
+            >
+          </div>
+        </template>
+        <span
+          >You can later access your application via a subpath in the URL.
+          <br />
+          To get this to work, some applications like e.g. Jupyter Notebooks
+          need a given base URL. <br />
+          Thus you have the opportunity to set a URL prefix according to the
+          application's needs. <br />
+          The final URL prefix will be given as an environment variable
+          <span class="secondary--text">URL_PREFIX</span>
+
+          to use with your application.</span
+        >
+      </v-tooltip>
+      <small>Select your desired resources</small></v-stepper-step
     >
     <v-stepper-content step="5">
       <v-form v-model="resourcesValid">
@@ -252,8 +354,33 @@
       >
     </v-stepper-content>
 
-    <v-stepper-step :complete="e6 > 6" step="6"
-      >Persistence
+    <v-stepper-step :complete="e6 > 6" step="6">
+      <v-tooltip right>
+        <template v-slot:activator="{ on, attrs }">
+          <div>
+            Persistence
+            <v-icon
+              v-bind="attrs"
+              small
+              :color="e6 == 4 ? 'primary' : 'grey'"
+              v-on="on"
+              >mdi-information</v-icon
+            >
+          </div>
+        </template>
+        <span
+          >You can later access your application via a subpath in the URL.
+          <br />
+          To get this to work, some applications like e.g. Jupyter Notebooks
+          need a given base URL. <br />
+          Thus you have the opportunity to set a URL prefix according to the
+          application's needs. <br />
+          The final URL prefix will be given as an environment variable
+          <span class="secondary--text">URL_PREFIX</span>
+
+          to use with your application.</span
+        >
+      </v-tooltip>
       <small>Enable or disable persistence (optional)</small></v-stepper-step
     >
     <v-stepper-content step="6">
@@ -301,8 +428,33 @@
       >
     </v-stepper-content>
 
-    <v-stepper-step :complete="e6 > 7" step="7"
-      >Object storage
+    <v-stepper-step :complete="e6 > 7" step="7">
+      <v-tooltip right>
+        <template v-slot:activator="{ on, attrs }">
+          <div>
+            Object storage
+            <v-icon
+              v-bind="attrs"
+              small
+              :color="e6 == 4 ? 'primary' : 'grey'"
+              v-on="on"
+              >mdi-information</v-icon
+            >
+          </div>
+        </template>
+        <span
+          >You can later access your application via a subpath in the URL.
+          <br />
+          To get this to work, some applications like e.g. Jupyter Notebooks
+          need a given base URL. <br />
+          Thus you have the opportunity to set a URL prefix according to the
+          application's needs. <br />
+          The final URL prefix will be given as an environment variable
+          <span class="secondary--text">URL_PREFIX</span>
+
+          to use with your application.</span
+        >
+      </v-tooltip>
       <small>Add MinIO buckets (optional)</small></v-stepper-step
     >
     <v-stepper-content step="7">
