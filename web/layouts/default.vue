@@ -43,34 +43,26 @@
       <v-menu v-if="$store.state.auth.loggedIn" offset-y>
         <template v-slot:activator="{ on }">
           <!-- <v-btn text slot="activator"> -->
-          <v-btn text v-on="on">
-            <span>Menu</span>
-            <v-icon right>expand_more</v-icon>
-          </v-btn>
+          <v-avatar slot="activator" color="primary" v-on="on">
+            <v-icon dark> mdi-account-circle </v-icon>
+            <!-- <v-icon right>expand_more</v-icon> -->
+          </v-avatar>
         </template>
         <v-card class="mx-auto" max-width="344" outlined>
           <v-list-item three-line>
             <v-list-item-content>
               <div class="overline mb-4">
                 {{ this.$auth.user.preferred_username }}
-                {{ $auth.strategy.token.get() }}
+                <!-- {{ $auth.strategy.token.get() }} -->
               </div>
               <v-list-item-title class="headline mb-1">
                 {{ this.$auth.user.given_name }}
                 {{ this.$auth.user.family_name }}
               </v-list-item-title>
-              <v-list-item-subtitle
-                >Greyhound divisely hello coldly
-                fonwderfully</v-list-item-subtitle
-              >
             </v-list-item-content>
-
-            <v-avatar color="primary">
-              <v-icon dark> mdi-account-circle </v-icon>
-            </v-avatar>
           </v-list-item>
 
-          <v-card-actions>
+          <v-card-actions class="justify-center">
             <v-btn color="primary" @click="logout()">Logout</v-btn>
           </v-card-actions>
         </v-card>
