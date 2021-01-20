@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 
 	"github.com/lukwil/concierge/cmd/common/clientset"
@@ -72,6 +73,7 @@ func createStatefulSet(p *hasura.SingleDeploymentPayload, namespace string) (sta
 	name := fmt.Sprintf("%v-%s", namespace, uuid.New())
 	cpu := p.Event.Data.New.CPU
 	ram := p.Event.Data.New.RAM
+	gpu := p.Event.Data.New.GPU
 	volumeID := p.Event.Data.New.VolumeID
 	image := strings.TrimSpace(p.Event.Data.New.ContainerImage)
 
@@ -149,6 +151,12 @@ func createStatefulSet(p *hasura.SingleDeploymentPayload, namespace string) (sta
 
 	container := &statefulSet.Spec.Template.Spec.Containers[0]
 
+	if gpu > 0 {
+		container.Resources.Limits = corev1.ResourceList{
+			"nvidia.com/gpu": resource.MustParse(strconv.Itoa(gpu)),
+		}
+	}
+
 	// create a volume if required by the user
 	if volumeID != 0 {
 		vol, err := getVolumeDetails(volumeID)
@@ -192,12 +200,12 @@ func createStatefulSet(p *hasura.SingleDeploymentPayload, namespace string) (sta
 	}
 	container.Env = append(container.Env, vars...)
 
-	buckets, err := getMinIOBuckets(id)
-	if err != nil {
-		log.Printf("Cannot retreive secret names from database: %v", err)
-		return "", "", err
-	}
-	container.Env = append(container.Env, buckets...)
+	// buckets, err := getMinIOBuckets(id)
+	// if err != nil {
+	// 	log.Printf("Cannot retreive secret names from database: %v", err)
+	// 	return "", "", err
+	// }
+	// container.Env = append(container.Env, buckets...)
 
 	log.Println("Creating StatefulSet...")
 	if _, err := statefulSetClient.Create(context.TODO(), statefulSet, metav1.CreateOptions{}); err != nil {
