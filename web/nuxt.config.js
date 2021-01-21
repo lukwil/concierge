@@ -77,8 +77,8 @@ export default {
   apollo: {
     clientConfigs: {
       default: {
-        httpEndpoint: 'http://10.5.12.6:31189/v1/graphql',
-        wsEndpoint: 'ws://10.5.12.6:31189/v1/graphql',
+        httpEndpoint: 'http://localhost:8090/v1/graphql',
+        wsEndpoint: 'ws://localhost:8090/v1/graphql',
         // httpEndpoint: 'http://localhost:8082/v1/graphql',
         // wsEndpoint: 'ws://localhost:8082/v1/graphql',
       },
@@ -118,7 +118,7 @@ export default {
         grantType: 'authorization_code',
         clientId: 'concierge-vue',
         scope: ['openid', 'profile', 'email'],
-        codeChallengeMethod: 'S256',
+        codeChallengeMethod: 'RS256',
       },
     },
   },

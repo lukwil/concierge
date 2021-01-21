@@ -8,6 +8,14 @@
   - name: status
     using:
       foreign_key_constraint_on: status_id
+  array_relationships:
+  - name: distributed_environment_variables
+    using:
+      foreign_key_constraint_on:
+        column: distributed_deployment_id
+        table:
+          schema: public
+          name: distributed_environment_variables
   event_triggers:
   - name: distributed
     definition:
@@ -31,6 +39,13 @@
     webhook: http://gateway.openfaas.svc.cluster.local:8080/function/delete-virtualsvc
 - table:
     schema: public
+    name: distributed_environment_variables
+  object_relationships:
+  - name: distributed_deployment
+    using:
+      foreign_key_constraint_on: distributed_deployment_id
+- table:
+    schema: public
     name: single_deployment
   object_relationships:
   - name: status
@@ -39,6 +54,14 @@
   - name: volume
     using:
       foreign_key_constraint_on: volume_id
+  array_relationships:
+  - name: single_environment_variables
+    using:
+      foreign_key_constraint_on:
+        column: single_deployment_id
+        table:
+          schema: public
+          name: single_environment_variables
   event_triggers:
   - name: single
     definition:
@@ -60,6 +83,13 @@
       interval_sec: 10
       timeout_sec: 60
     webhook: http://gateway.openfaas.svc.cluster.local:8080/function/delete-virtualsvc
+- table:
+    schema: public
+    name: single_environment_variables
+  object_relationships:
+  - name: single_deployment
+    using:
+      foreign_key_constraint_on: single_deployment_id
 - table:
     schema: public
     name: status

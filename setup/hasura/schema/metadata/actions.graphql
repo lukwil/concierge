@@ -51,6 +51,7 @@ type SampleOutput {
 
 type ContainerWarningsOutput {
   Timestamp : String!
+  Reason : String!
   Message : String!
 }
 
